@@ -1,3 +1,26 @@
+export function updatedLinkStyle(diagram: go.Diagram) {
+  diagram.links.each(function (link) {
+    const fromNode = link.fromNode;
+    const toNode = link.toNode;
+    if (
+      (fromNode &&
+        toNode &&
+        fromNode.data?.category === 'DashedDiamond' &&
+        toNode.data?.category === 'DashedCircle') ||
+      (fromNode &&
+        toNode &&
+        fromNode.data?.category === 'DashedCircle' &&
+        toNode.data?.category === 'DashedDiamond')
+    ) {
+      link.path!.strokeDashArray = [4, 4];
+      link.elt(1).visible = false;
+    } else {
+      link.path!.strokeDashArray = null;
+      link.elt(1).visible = true;
+    }
+  });
+
+
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { DiagramComponent } from './diagram.component';
 import { By } from '@angular/platform-browser';
