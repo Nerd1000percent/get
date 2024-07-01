@@ -1,3 +1,43 @@
+import { updatedLinkStyle } from './gojs-inits';
+import * as go from 'gojs';
+
+describe('updatedLinkStyle', () => {
+  let diagram: go.Diagram;
+
+  beforeEach(() => {
+    // Create a mock diagram for testing
+    diagram = new go.Diagram();
+    // Create and add nodes and links to the diagram as needed for tests
+    const dashedDiamond = { category: 'DashedDiamond' };
+    const dashedCircle = { category: 'DashedCircle' };
+    const node1 = { key: 1, data: dashedDiamond };
+    const node2 = { key: 2, data: dashedCircle };
+    diagram.model = new go.GraphLinksModel([node1, node2], []);
+    const link = { from: 1, to: 2 };
+    diagram.model.addLinkData(link);
+    diagram.commit((d) => {
+      updatedLinkStyle(d);
+    }, 'updated style');
+  });
+
+  it('should update link style for compatible nodes', () => {
+    const link = diagram.links.first();
+    const path = link.path as go.Shape;
+    expect(path.strokeDashArray).toEqual([4, 4]);
+    expect(link.elt(1).visible).toBeFalse();
+  });
+
+  it('should reset link style for other nodes', () => {
+    const link = diagram.links.first();
+    const path = link.path as go.Shape;
+    // Assuming link is not between DashedDiamond and DashedCircle nodes
+    expect(path.strokeDashArray).toBeNull();
+    expect(link.elt(1).visible).toBeTrue();
+  });
+});
+
+
+
 export function updatedLinkStyle(diagram: go.Diagram) {
   diagram.links.each(function (link) {
     const fromNode = link.fromNode;
