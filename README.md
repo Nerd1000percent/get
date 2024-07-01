@@ -1,3 +1,140 @@
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { DiagramComponent } from './diagram.component';
+import { By } from '@angular/platform-browser';
+import * as go from 'gojs';
+
+describe('DiagramComponent', () => {
+  let component: DiagramComponent;
+  let fixture: ComponentFixture<DiagramComponent>;
+  let diagramDiv: HTMLElement;
+
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      declarations: [DiagramComponent],
+    }).compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(DiagramComponent);
+    component = fixture.componentInstance;
+    diagramDiv = fixture.debugElement.query(By.css('div')).nativeElement;
+    fixture.detectChanges();
+    component.initializeDiagram(diagramDiv);
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should save the diagram', () => {
+    spyOn(component, 'save').and.callThrough();
+    const saveButton = fixture.debugElement.query(By.css('button')).nativeElement;
+    saveButton.click();
+    expect(component.save).toHaveBeenCalled();
+  });
+
+  it('should load the diagram', () => {
+    spyOn(component, 'load').and.callThrough();
+    const loadButton = fixture.debugElement.queryAll(By.css('button'))[1].nativeElement;
+    loadButton.click();
+    expect(component.load).toHaveBeenCalled();
+  });
+
+  it('should handle file input correctly', () => {
+    spyOn(window, 'alert');
+    const input = document.createElement('input');
+    input.type = 'file';
+    document.body.appendChild(input);
+
+    const event = new Event('change');
+    Object.defineProperty(event, 'target', {
+      value: { files: [new Blob(['{}'], { type: 'application/json' })] },
+    });
+
+    input.dispatchEvent(event);
+    component.load();
+    expect(window.alert).not.toHaveBeenCalled();
+    document.body.removeChild(input);
+  });
+
+  it('should handle no file selected', () => {
+    spyOn(window, 'alert');
+    const input = document.createElement('input');
+    input.type = 'file';
+    document.body.appendChild(input);
+
+    const event = new Event('change');
+    Object.defineProperty(event, 'target', {
+      value: { files: [] },
+    });
+
+    input.dispatchEvent(event);
+    component.load();
+    expect(window.alert).toHaveBeenCalledWith('No file selected.');
+    document.body.removeChild(input);
+  });
+
+  it('should handle multiple files selected', () => {
+    spyOn(window, 'alert');
+    const input = document.createElement('input');
+    input.type = 'file';
+    document.body.appendChild(input);
+
+    const event = new Event('change');
+    Object.defineProperty(event, 'target', {
+      value: { files: [new Blob(['{}'], { type: 'application/json' }), new Blob(['{}'], { type: 'application/json' })] },
+    });
+
+    input.dispatchEvent(event);
+    component.load();
+    expect(window.alert).toHaveBeenCalledWith('Please select a single JSON file.');
+    document.body.removeChild(input);
+  });
+
+  it('should handle non-JSON file selected', () => {
+    spyOn(window, 'alert');
+    const input = document.createElement('input');
+    input.type = 'file';
+    document.body.appendChild(input);
+
+    const event = new Event('change');
+    Object.defineProperty(event, 'target', {
+      value: { files: [new Blob(['text'], { type: 'text/plain' })] },
+    });
+
+    input.dispatchEvent(event);
+    component.load();
+    expect(window.alert).toHaveBeenCalledWith('Please select a valid JSON file.');
+    document.body.removeChild(input);
+  });
+
+  it('should show and hide ports on mouse enter/leave', () => {
+    const nodeData = { key: 1, text: 'Node 1', loc: '0 0' };
+    component.diagram.model = new go.GraphLinksModel([nodeData]);
+    const node = component.diagram.findNodeForKey(1);
+
+    // Simulate mouse enter
+    component.diagram.toolManager.doMouseEnter(new go.InputEvent(), node);
+    node.ports.each((port) => {
+      if (port.portId !== '') {
+        expect(port.fill).toBe('rgba(0,0,0,.3)');
+      }
+    });
+
+    // Simulate mouse leave
+    component.diagram.toolManager.doMouseLeave(new go.InputEvent(), node);
+    node.ports.each((port) => {
+      if (port.portId !== '') {
+        expect(port.fill).toBe('transparent');
+      }
+    });
+  });
+});
+
+
+
+
+
 // src/app/diagram/diagram.component.spec.ts
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
