@@ -1,3 +1,99 @@
+
+import * as go from 'gojs';
+
+export const initDiagram = (): go.Diagram => {
+  const $ = go.GraphObject.make;
+
+  const diagram = $(go.Diagram, {
+    'undoManager.isEnabled': true  // enable undo & redo
+  });
+
+  // Node templates
+  diagram.nodeTemplateMap.add("Ellipse",
+    $(go.Node, "Auto",
+      { locationSpot: go.Spot.Center },
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+      new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+      $(go.Shape, "Ellipse",
+        { fill: "lightblue" }),
+      $(go.TextBlock, { margin: 8 },
+        new go.Binding("text", "text"))
+    ));
+
+  diagram.nodeTemplateMap.add("Diamond",
+    $(go.Node, "Auto",
+      { locationSpot: go.Spot.Center },
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+      new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+      $(go.Shape, "Diamond",
+        { fill: "lightgreen" }),
+      $(go.TextBlock, { margin: 8 },
+        new go.Binding("text", "text"))
+    ));
+
+  diagram.nodeTemplateMap.add("RoundedRectangle",
+    $(go.Node, "Auto",
+      { locationSpot: go.Spot.Center },
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+      new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+      $(go.Shape, "RoundedRectangle",
+        { fill: "lightcoral" }),
+      $(go.TextBlock, { margin: 8 },
+        new go.Binding("text", "text"))
+    ));
+
+  // Group template for RoundedRectangle
+  diagram.groupTemplateMap.add("RoundedRectangleGroup",
+    $(go.Group, "Auto",
+      {
+        layout: $(go.LayeredDigraphLayout),
+        computesBoundsAfterDrag: true,  // allows members to resize when inside the group
+        handlesDragDropForMembers: true // enables drag-and-drop from the group onto the diagram
+      },
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+      $(go.Shape, "RoundedRectangle",
+        { fill: "rgba(128,128,128,0.2)", stroke: "gray", strokeWidth: 2 }),
+      $(go.Panel, "Vertical",
+        { defaultAlignment: go.Spot.TopLeft },
+        $(go.TextBlock,
+          { font: "Bold 12pt Sans-Serif", margin: 4 },
+          new go.Binding("text")),
+        $(go.Placeholder, { padding: 5 })
+      )
+    ));
+
+  // Link template
+  diagram.linkTemplate = $(
+    go.Link,
+    { routing: go.Link.AvoidsNodes, corner: 5 },
+    $(go.Shape),  // the link shape
+    $(go.Shape, { toArrow: 'Standard' })  // the arrowhead
+  );
+
+  // Override DraggingTool.computeEffectiveCollection to enforce containment rules
+  diagram.toolManager.draggingTool.computeEffectiveCollection = (parts: go.Iterator<go.Part>, options?: go.DraggingTool.ComputeEffectiveCollectionOptions): go.Set<go.Part> => {
+    const result = go.DraggingTool.prototype.computeEffectiveCollection.call(diagram.toolManager.draggingTool, parts, options);
+    const group = options?.targetPart?.adornedPart as go.Group;
+
+    if (group && group.category === "RoundedRectangleGroup") {
+      const canContainOtherFigures = parts.every(part => {
+        const partCategory = part.category;
+        return partCategory === "Ellipse" || partCategory === "Diamond";
+      });
+
+      if (!canContainOtherFigures) {
+        return new go.Set(); // Return an empty Set to prevent invalid drops
+      }
+    }
+
+    return result;
+  };
+
+  return diagram;
+};
+
+
+
 import * as go from 'gojs';
 
 export const initDiagram = (): go.Diagram => {
