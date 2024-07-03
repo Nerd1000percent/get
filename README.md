@@ -1,3 +1,68 @@
+new go.Group("Auto",
+  {
+    ungroupable: true,
+    // highlight when dragging into the Group
+    mouseDragEnter: (e, grp, prev) => highlightGroup(e, grp, true),
+    mouseDragLeave: (e, grp, next) => highlightGroup(e, grp, false),
+    computesBoundsAfterDrag: true,
+    computesBoundsIncludingLocation: true,
+    // when the selection is dropped into a Group, add the selected Parts into that Group;
+    // if it fails, cancel the tool, rolling back any changes
+    mouseDrop: finishDrop,
+    handlesDragDropForMembers: true,  // don't need to define handlers on member Nodes and Links
+    // Groups containing Groups lay out their members horizontally
+    layout: makeLayout(false),
+    background: defaultColor(false) // default value if not specified in data
+  })
+  .bind("background", "horiz", defaultColor)
+  .bind("layout", "horiz", makeLayout)
+  .add(
+    new go.Shape("Rectangle",
+      { stroke: colors.gray, strokeWidth: 1, hasShadow: true })
+      .bindObject("fill", "isHighlighted", h => h ? 'rgba(0,255,0,.3)' : 'transparent'),
+    new go.Panel("Vertical")  // title above Placeholder
+      .add(
+        new go.Panel("Horizontal",  // button next to TextBlock
+          { stretch: go.Stretch.Horizontal })
+          .add(
+            go.GraphObject.make("SubGraphExpanderButton", { alignment: go.Spot.Right, margin: 5 }),
+            new go.TextBlock(
+              {
+                alignment: go.Spot.Left,
+                editable: true,
+                margin: new go.Margin(6, 10, 6, 1),
+                font: "bold 16px Lora, serif",
+                opacity: 0.95,  // allow some color to show through
+                stroke: colors.black
+              })
+              .bind("font", "horiz", (horiz) => horiz ? "bold 20px Lora, serif" : "bold 16px Lora, serif")
+              .bindTwoWay("text")
+          ),  // end Horizontal Panel
+        new go.Placeholder({ padding: 8, margin: 4, alignment: go.Spot.TopLeft }),
+        // Add link section
+        new go.Panel("Horizontal", { margin: new go.Margin(5, 0, 0, 0) })
+          .add(
+            new go.TextBlock("Link: "),
+            new go.TextBlock(
+              {
+                textAlign: "center",
+                cursor: "pointer",
+                isUnderline: true,
+                stroke: "blue",
+                click: (e, obj) => {
+                  var link = obj.part.data.link;
+                  if (link) window.open(link, "_blank");
+                }
+              })
+              .bind("text", "linkText")
+          )  // end Horizontal Panel for link
+      )  // end Vertical Panel
+  )  // end Auto Panel
+
+
+
+
+
 import * as go from 'gojs';
 
 // Define interfaces for node and group data
