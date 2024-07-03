@@ -1,3 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GoJS Group Template with Links and Ports</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gojs/2.1.36/go.js"></script>
+  <style>
+    html, body, #myDiagramDiv {
+      width: 100%; 
+      height: 100%; 
+      margin: 0; 
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="myDiagramDiv"></div>
+  <script>
+    function init() {
+      var $ = go.GraphObject.make;
+
+      var myDiagram = $(go.Diagram, "myDiagramDiv",
+        {
+          "undoManager.isEnabled": true,
+          layout: $(go.LayeredDigraphLayout)
+        });
+
+      // Define the node template
+      myDiagram.nodeTemplate =
+        $(go.Node, "Auto",
+          $(go.Shape, "RoundedRectangle", { fill: "white" }),
+          $(go.TextBlock, { margin: 8 },
+            new go.Binding("text", "text"))
+        );
+
+      // Define the link template
+      myDiagram.linkTemplate =
+        $(go.Link,
+          { routing: go.Link.AvoidsNodes, corner: 5 },
+          $(go.Shape),
+          $(go.Shape, { toArrow: "Standard" })
+        );
+
+      // Define a function to create a port
+      function makePort(name, spot, output, input) {
+        return $(go.Shape, "Circle",
+          {
+            fill: "transparent",
+            stroke: null,
+            desiredSize: new go.Size(8, 8),
+            alignment: spot, alignmentFocus: spot,  // align the port on the main Shape
+            portId: name,  // declare this object to be a "port"
+            fromSpot: spot, toSpot: spot,  // declare where links may connect at this port
+            fromLinkable: output, toLinkable: input,  // declare whether the user may draw links to/from here
+            cursor: "pointer"  // show a different cursor to indicate potential link point
+          });
+      }
+
+      // Define the group template
+      myDiagram.groupTemplate =
+        $(go.Group, "Auto",
+          {
+            ungroupable: true,
+            // highlight when dragging into the Group
+            mouseDragEnter: (e, grp, prev) => highlightGroup(e, grp, true),
+            mouseDragLeave: (e, grp, next) => highlightGroup(e, grp, false),
+            computesBoundsAfterDrag: true,
+            computesBoundsIncludingLocation: true,
+            // when the selection is dropped into a Group, add the selected Parts into that Group;
+            // if it fails, cancel the tool, rolling back any changes
+            mouseDrop: finishDrop,
+            handlesDragDropForMembers: true,  // don't need to define handlers on member Nodes and Links
+            // Groups containing Groups lay out their members horizontally
+            layout: $(go.LayeredDigraphLayout),
+            background: "lightgray" // default background color
+          },
+          new go.Shape("Rectangle",
+            { fill: null, stroke: "gray", strokeWidth: 2 }),
+          $(go.Panel, "Vertical")  // title above Placeholder
+            .add(
+              $(go.Panel, "Horizontal",  // button next to TextBlock
+                { stretch: go.Stretch.Horizontal })
+                .add(
+                  $("SubGraphExpanderButton", { alignment: go.Spot.Right, margin: 5 }),
+                  $(go.TextBlock,
+                    {
+                      alignment: go.Spot.Left,
+                      editable: true,
+                      margin: new go.Margin(6, 10, 6, 1),
+                      font: "bold 16px Lora, serif",
+                      opacity: 0.95,  // allow some color to show through
+                      stroke: "black"
+                    })
+                    .bind("text", "text")
+                ),  // end Horizontal Panel
+              $(go.Placeholder,
+                { padding: 8, alignment: go.Spot.TopLeft })
+            ),  // end Vertical Panel
+          // Add ports to the group
+          makePort("T", go.Spot.Top, false, true),
+          makePort("L", go.Spot.Left, true, true),
+          makePort("R", go.Spot.Right, true, true),
+          makePort("B", go.Spot.Bottom, true, false)
+        );
+
+      // Create the model data
+      myDiagram.model = new go.GraphLinksModel(
+        [
+          { key: 1, isGroup: true, text: "Group 1" },
+          { key: 2, group: 1, text: "Node 1" },
+          { key: 3, group: 1, text: "Node 2" },
+          { key: 4, text: "Node outside Group" }
+        ],
+        [
+          { from: 2, to: 3 },
+          { from: 4, to: 1, toPort: "T" },  // Link to the top port of the group
+          { from: 1, to: 4, fromPort: "R" }  // Link from the right port of the group
+        ]
+      );
+    }
+
+    function highlightGroup(e, grp, show) {
+      if (!grp) return;
+      e.handled = true;
+      if (show) {
+        var tool = grp.diagram.toolManager.draggingTool;
+        var map = tool.draggedParts || tool.copiedParts;
+        if (grp.canAddMembers(map.toKeySet())) {
+          grp.isHighlighted = true;
+          return;
+        }
+      }
+      grp.isHighlighted = false;
+    }
+
+    function finishDrop(e, grp) {
+      var ok = grp.addMembers(grp.diagram.selection, true);
+      if (!ok) grp.diagram.currentTool.doCancel();
+    }
+
+    init();
+  </script>
+</body>
+</html>
+
+
+
 new go.Group("Auto",
   {
     ungroupable: true,
