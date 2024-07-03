@@ -73,6 +73,103 @@ export function initDiagram(): go.Diagram {
 
   // Handle ExternalObjectsDropped event to validate group membership
   diagram.addDiagramListener("ExternalObjectsDropped", (e: go.DiagramEvent) => {
+    const nodes = e.subject.toArray();
+    const group = e.diagram.selection.first() as go.Group | null;
+
+    if (group && group.category === "RoundedRectangle") {
+      const canContainOtherFigures = nodes.every(node => {
+        const nodeCategory = node.category;
+        return nodeCategory === "Ellipse" || nodeCategory === "Diamond";
+      });
+
+      if (!canContainOtherFigures) {
+        alert("RoundedRectangle can only contain Ellipse and Diamond nodes.");
+        e.diagram.currentTool.doCancel();
+      }
+    }
+  });
+
+  return diagram;
+}
+
+
+
+
+import * as go from 'gojs';
+
+export function initDiagram(): go.Diagram {
+  const $ = go.GraphObject.make;
+
+  const diagram = $(go.Diagram, {
+    'undoManager.isEnabled': true  // enable undo & redo
+  });
+
+  // Node template for Ellipse
+  diagram.nodeTemplateMap.add("Ellipse",
+    $(go.Node, "Auto",
+      { locationSpot: go.Spot.Center },
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+      new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+      $(go.Shape, "Ellipse",
+        { fill: "lightblue" }),
+      $(go.TextBlock, { margin: 8 },
+        new go.Binding("text", "text"))
+    ));
+
+  // Node template for Diamond
+  diagram.nodeTemplateMap.add("Diamond",
+    $(go.Node, "Auto",
+      { locationSpot: go.Spot.Center },
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+      new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+      $(go.Shape, "Diamond",
+        { fill: "lightgreen" }),
+      $(go.TextBlock, { margin: 8 },
+        new go.Binding("text", "text"))
+    ));
+
+  // Node template for RoundedRectangle
+  diagram.nodeTemplateMap.add("RoundedRectangle",
+    $(go.Node, "Auto",
+      { locationSpot: go.Spot.Center },
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+      new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+      $(go.Shape, "RoundedRectangle",
+        { fill: "lightcoral" }),
+      $(go.TextBlock, { margin: 8 },
+        new go.Binding("text", "text"))
+    ));
+
+  // Group template for RoundedRectangle
+  diagram.groupTemplateMap.add("RoundedRectangle",
+    $(go.Group, "Auto",
+      {
+        layout: $(go.LayeredDigraphLayout),
+        // Allow the group to contain other nodes
+        computesBoundsAfterDrag: true,
+        handlesDragDropForMembers: true
+      },
+      $(go.Shape, "RoundedRectangle",
+        { fill: "rgba(128,128,128,0.2)", stroke: "gray", strokeWidth: 2 }),
+      $(go.Panel, "Vertical",
+        { defaultAlignment: go.Spot.TopLeft },
+        $(go.TextBlock,
+          { font: "Bold 12pt Sans-Serif", margin: 4 },
+          new go.Binding("text")),
+        $(go.Placeholder, { padding: 5 })
+      )
+    ));
+
+  // Link template
+  diagram.linkTemplate = $(
+    go.Link,
+    { routing: go.Link.AvoidsNodes, corner: 5 },
+    $(go.Shape),  // the link shape
+    $(go.Shape, { toArrow: 'Standard' })  // the arrowhead
+  );
+
+  // Handle ExternalObjectsDropped event to validate group membership
+  diagram.addDiagramListener("ExternalObjectsDropped", (e: go.DiagramEvent) => {
     const nodes = e.subject.cast<go.PartManager>().toKeySet().toArray();
     const group = e.diagram.selection.first() as go.Group | null;
 
