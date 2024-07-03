@@ -1,3 +1,77 @@
+
+import * as go from 'gojs';
+
+export function initDiagram(): go.Diagram {
+  const $ = go.GraphObject.make;
+
+  const diagram = $(go.Diagram, {
+    'undoManager.isEnabled': true  // enable undo & redo
+  });
+
+  diagram.toolManager.linkingTool.linkValidation = validateLink;
+  diagram.toolManager.relinkingTool.linkValidation = validateLink;
+
+  diagram.nodeTemplateMap.add("",  // default category
+    $(go.Node, "Auto",
+      { locationSpot: go.Spot.Center },
+      new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+      new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+      $(go.Shape,
+        new go.Binding("figure", "figure"),
+        new go.Binding("fill", "color")),
+      $(go.TextBlock, { margin: 8 },
+        new go.Binding("text", "text"))
+    ));
+
+  diagram.groupTemplateMap.add("RoundedRectangle",
+    $(go.Group, "Auto",
+      {
+        layout: $(go.LayeredDigraphLayout),
+        // ensure the group is able to contain other nodes
+        computesBoundsAfterDrag: true,
+        handlesDragDropForMembers: true,
+        memberValidation: validateContainment
+      },
+      $(go.Shape, "RoundedRectangle",
+        { fill: "rgba(128,128,128,0.2)", stroke: "gray", strokeWidth: 2 }),
+      $(go.Panel, "Vertical",
+        { defaultAlignment: go.Spot.TopLeft },
+        $(go.TextBlock,
+          { font: "Bold 12pt Sans-Serif", margin: 4 },
+          new go.Binding("text")),
+        $(go.Placeholder, { padding: 5 })
+      )
+    ));
+
+  diagram.linkTemplate = $(
+    go.Link,
+    { routing: go.Link.AvoidsNodes, corner: 5 },
+    $(go.Shape),  // the link shape
+    $(go.Shape, { toArrow: 'Standard' })  // the arrowhead
+  );
+
+  return diagram;
+}
+
+function validateLink(fromNode: go.Node, toNode: go.Node): boolean {
+  const fromFigure = fromNode.data.figure;
+  const toFigure = toNode.data.figure;
+
+  if (fromFigure === 'Ellipse' && (toFigure === 'Ellipse' || toFigure === 'RoundedRectangle')) {
+    return true;
+  } else if (fromFigure === 'RoundedRectangle' && toFigure === 'RoundedRectangle') {
+    return true;
+  }
+  return false;
+}
+
+function validateContainment(group: go.Group, node: go.Node): boolean {
+  return true;  // Allow all nodes to be contained in the RoundedRectangle group
+}
+
+
+
+
 import { updatedLinkStyle } from './gojs-inits';
 import * as go from 'gojs';
 
