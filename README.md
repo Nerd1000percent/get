@@ -1,3 +1,89 @@
+// src/app/gojs-functions.spec.ts
+import * as go from 'gojs';
+import { groupDepth, finishDrop, updateTotalGroupDepth } from './gojs-functions';
+
+describe('GoJS Functions', () => {
+  describe('groupDepth', () => {
+    it('should return 0 for non-group objects', () => {
+      const node = new go.Node();
+      expect(groupDepth(node)).toBe(0);
+    });
+
+    it('should return 1 for a group with no members', () => {
+      const group = new go.Group();
+      expect(groupDepth(group)).toBe(1);
+    });
+
+    it('should return correct depth for nested groups', () => {
+      const group1 = new go.Group();
+      const group2 = new go.Group();
+      const group3 = new go.Group();
+      group1.add(group2);
+      group2.add(group3);
+
+      expect(groupDepth(group1)).toBe(3);
+    });
+
+    it('should return correct depth for mixed group and nodes', () => {
+      const group1 = new go.Group();
+      const group2 = new go.Group();
+      const node1 = new go.Node();
+      const node2 = new go.Node();
+      group1.add(group2);
+      group2.add(node1);
+      group2.add(node2);
+
+      expect(groupDepth(group1)).toBe(2);
+    });
+  });
+
+  describe('finishDrop', () => {
+    let diagram: go.Diagram;
+    let inputEvent: go.InputEvent;
+    let commandHandler: jasmine.SpyObj<go.CommandHandler>;
+    let currentTool: jasmine.SpyObj<go.Tool>;
+
+    beforeEach(() => {
+      diagram = new go.Diagram();
+      commandHandler = jasmine.createSpyObj('CommandHandler', ['addTopLevelParts']);
+      currentTool = jasmine.createSpyObj('Tool', ['doCancel']);
+      diagram.commandHandler = commandHandler;
+      diagram.currentTool = currentTool;
+      inputEvent = new go.InputEvent();
+      inputEvent.diagram = diagram;
+    });
+
+    it('should add top-level parts and not cancel tool if successful', () => {
+      commandHandler.addTopLevelParts.and.returnValue(true);
+
+      finishDrop(inputEvent);
+
+      expect(commandHandler.addTopLevelParts).toHaveBeenCalledWith(diagram.selection, true);
+      expect(currentTool.doCancel).not.toHaveBeenCalled();
+    });
+
+    it('should cancel tool if adding top-level parts fails', () => {
+      commandHandler.addTopLevelParts.and.returnValue(false);
+
+      finishDrop(inputEvent);
+
+      expect(commandHandler.addTopLevelParts).toHaveBeenCalledWith(diagram.selection, true);
+      expect(currentTool.doCancel).toHaveBeenCalled();
+    });
+
+    it('should call updateTotalGroupDepth after dropping parts', () => {
+      spyOn(window, 'updateTotalGroupDepth').and.callFake(() => {});
+
+      finishDrop(inputEvent);
+
+      expect(window.updateTotalGroupDepth).toHaveBeenCalled();
+    });
+  });
+});
+
+
+
+
  function groupDepth(g: go.GraphObject) {
     Iif (!(g instanceof go.Group)) return 0;
     let d = 1;
