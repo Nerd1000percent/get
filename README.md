@@ -1,3 +1,263 @@
+import go from 'gojs';
+import { groupTemplate, nodeTemplate } from '../gojs/gojs-node-template';
+const $ = go.GraphObject.make;
+
+// initializes the diagram template
+export function initDiagram() {
+  const diagram: go.Diagram = $(go.Diagram, {
+    'draggingTool.dragsLink': true,
+    InitialLayoutCompleted: () => updateTotalGroupDepth(),
+    // when a drag-drop occurs in the Diagram's background, make it a top-level node
+    mouseDrop: (e: go.InputEvent) => finishDrop(e),
+
+    //ModelChanged: (e: go.ChangedEvent) => this.onDiagramModelChanged(e),
+    'draggingTool.isGridSnapEnabled': true,
+    hasHorizontalScrollbar: true,
+    'linkingTool.isUnconnectedLinkValid': true,
+    'linkingTool.portGravity': 20,
+    'relinkingTool.isUnconnectedLinkValid': true,
+    'relinkingTool.portGravity': 20,
+    'linkingTool.linkValidation': validateLink,
+    'relinkingTool.linkValidation': validateLink,
+    'toolManager.mouseWheelBehavior': go.WheelMode.Zoom,
+
+    'relinkingTool.fromHandleArchetype': $(go.Shape, 'Diamond', {
+      segmentIndex: 0,
+      cursor: 'pointer',
+      desiredSize: new go.Size(8, 8),
+      fill: 'tomato',
+      stroke: 'darkred',
+    }),
+    'relinkingTool.toHandleArchetype': $(go.Shape, 'Diamond', {
+      segmentIndex: -1,
+      cursor: 'pointer',
+      desiredSize: new go.Size(8, 8),
+      fill: 'darkred',
+      stroke: 'tomato',
+    }),
+    'linkReshapingTool.handleArchetype': $(go.Shape, 'Diamond', {
+      desiredSize: new go.Size(7, 7),
+      fill: 'lightblue',
+      stroke: 'deepskyblue',
+    }),
+    'rotatingTool.handleAngle': 270,
+    'rotatingTool.handleDistance': 30,
+    'rotatingTool.snapAngleMultiple': 15,
+    'rotatingTool.snapAngleEpsilon': 15,
+    'undoManager.isEnabled': true,
+
+    'clickCreatingTool.archetypeNodeData': {
+      text: 'new node',
+      color: 'purple',
+    },
+
+    model: $(go.GraphLinksModel, {
+      nodeKeyProperty: 'id',
+      linkToPortIdProperty: 'toPort',
+      linkFromPortIdProperty: 'fromPort',
+      linkKeyProperty: 'key', // IMPORTANT! must be defined for merges and data sync when using GraphLinksModel
+    }),
+    grid: $(
+      go.Panel,
+      'Grid',
+      $(go.Shape, 'LineH', { stroke: 'lightgray', strokeWidth: 0.5 }),
+      $(go.Shape, 'LineH', {
+        stroke: 'gray',
+        strokeWidth: 0.5,
+        interval: 10,
+      }),
+      $(go.Shape, 'LineV', { stroke: 'lightgray', strokeWidth: 0.5 }),
+      $(go.Shape, 'LineV', {
+        stroke: 'gray',
+        strokeWidth: 0.5,
+        interval: 10,
+      }),
+    ),
+  });
+  diagram.nodeTemplate = nodeTemplate;
+  diagram.add(
+    $(
+      go.Part, // this Part is not bound to any model data
+      {
+        layerName: 'Background',
+        position: new go.Point(0, 0),
+        selectable: false,
+        pickable: false,
+      },
+      $(
+        go.Picture,
+        // enable to place a picture on the diagram  'https://miro.medium.com/v2/format:webp/0*ZjYSm_q36J4KChdn',
+      ),
+    ),
+  );
+
+  const linkSelectionAdornmentTemplate = $(
+    go.Adornment,
+    'Link',
+    $(
+      go.Shape,
+      // isPanelMain declares that this Shape shares the Link.geometry
+      {
+        isPanelMain: true,
+        fill: null,
+        stroke: 'deepskyblue',
+        strokeWidth: 0,
+      },
+    ), // use selection object's strokeWidth
+  );
+  diagram.linkTemplate = $(
+    go.Link, // the whole link panel
+    {
+      selectable: true,
+      selectionAdornmentTemplate: linkSelectionAdornmentTemplate,
+    },
+    { relinkableFrom: true, relinkableTo: true, reshapable: true },
+    {
+      routing: go.Routing.AvoidsNodes,
+      curve: go.Curve.JumpOver,
+      corner: 5,
+      toShortLength: 4,
+    },
+    new go.Binding('points').makeTwoWay(),
+    $(
+      go.Shape, // the link path shape
+      { isPanelMain: true, strokeWidth: 2 },
+    ),
+    $(
+      go.Shape, // the arrowhead
+      { toArrow: 'Standard', stroke: null },
+    ),
+    $(
+      go.Panel,
+      'Auto',
+      new go.Binding('visible', 'isSelected').ofObject(),
+      $(
+        go.Shape,
+        'RoundedRectangle', // the link shape
+        { fill: '#F8F8F8', stroke: null },
+      ),
+      $(
+        go.TextBlock,
+        {
+          textAlign: 'center',
+          font: '9pt helvetica, arial, sans-serif',
+          stroke: '#919191',
+          margin: 2,
+          minSize: new go.Size(10, NaN),
+          editable: true,
+        },
+        new go.Binding('text').makeTwoWay(),
+      ),
+    ),
+    $(
+      go.Shape, // the arrowhead
+      { toArrow: 'Standard', stroke: null, visible: false },
+    ),
+  );
+  diagram.groupTemplate = groupTemplate;
+  // end Auto Panel
+
+  diagram.nodeTemplateMap.add(
+    'Highlighted',
+    $(
+      go.Node,
+      'Auto',
+      { locationSpot: go.Spot.Center },
+      $(go.Shape, 'Rectangle', {
+        fill: null,
+        stroke: 'dodgerblue',
+        strokeWidth: 2,
+      }),
+      $(go.Placeholder),
+    ),
+  );
+  (diagram.toolManager.linkingTool.linkValidation = validateLink),
+    (diagram.toolManager.relinkingTool.linkValidation = validateLink),
+    diagram.addDiagramListener('LinkDrawn', function (e) {
+      updatedLinkStyle(e.diagram);
+    });
+  diagram.addDiagramListener('LinkRelinked', function (e) {
+    updatedLinkStyle(e.diagram);
+  });
+  function updateTotalGroupDepth() {
+    let d = 0;
+    diagram.findTopLevelGroups().each((g) => (d = Math.max(d, groupDepth(g))));
+  }
+  function groupDepth(g: go.GraphObject) {
+    if (!(g instanceof go.Group)) return 0;
+    let d = 1;
+    g.memberParts.each((m) => (d = Math.max(d, groupDepth(m) + 1)));
+    return d;
+  }
+  function finishDrop(e: go.InputEvent) {
+    const ok = e.diagram.commandHandler.addTopLevelParts(
+      e.diagram.selection,
+      true,
+    );
+    if (!ok) e.diagram.currentTool.doCancel();
+    updateTotalGroupDepth();
+  }
+  updatedLinkStyle(diagram); //initial update to set the links style.
+  return diagram;
+}
+export function updatedLinkStyle(diagram: go.Diagram) {
+  diagram.links.each(function (link) {
+    const fromNode = link.fromNode;
+    const toNode = link.toNode;
+    if (
+      (fromNode &&
+        toNode &&
+        fromNode.data?.category === 'DashedDiamond' &&
+        toNode.data?.category === 'DashedCircle') ||
+      (fromNode &&
+        toNode &&
+        fromNode.data?.category === 'DashedCircle' &&
+        toNode.data?.category === 'DashedDiamond')
+    ) {
+      link.path!.strokeDashArray = [4, 4];
+      link.elt(1).visible = false;
+    } else {
+      link.path!.strokeDashArray = null;
+      link.elt(1).visible = true;
+    }
+  });
+}
+export function validateLink(
+  fromNode: go.Node,
+  fromPort: go.GraphObject,
+  toNode: go.Node,
+  toPort: go.GraphObject,
+): boolean {
+  const fromFigure = fromNode?.data.figure;
+  const toFigure = toNode?.data.figure;
+  if (
+    fromFigure &&
+    fromPort &&
+    fromFigure == 'Ellipse' &&
+    ((toFigure && toPort && toFigure == 'Ellipse') ||
+      toFigure === 'RoundedRectangle')
+  ) {
+    return true;
+  } else if (
+    (fromFigure === 'RoundedRectangle' && toFigure === 'RoundedRectangle') ||
+    toFigure === 'Ellipse'
+  ) {
+    return true;
+  } else if (
+    (fromFigure === 'Diamond' && toFigure == 'Ellipse') ||
+    (fromFigure == 'Ellipse' && toFigure == 'Diamond')
+  ) {
+    return true;
+  }
+  return false;
+}
+
+
+
+
+
+
+
 // src/app/gojs-diagram.spec.ts
 import * as go from 'gojs';
 import { initializeDiagram } from './gojs-diagram';
