@@ -1,3 +1,60 @@
+export function validateLink(
+  fromNode: go.Node,
+  fromPort: go.GraphObject,
+  toNode: go.Node,
+  toPort: go.GraphObject,
+): boolean {
+  const fromFigure = fromNode?.data.figure;
+  const toFigure = toNode?.data.figure;
+  if (
+    fromFigure &&
+    fromPort &&
+    fromFigure == 'Ellipse' &&
+    ((toFigure && toPort && toFigure == 'Ellipse') ||
+      toFigure === 'RoundedRectangle')
+  ) {
+    return true;
+  } else if (
+    (fromFigure === 'RoundedRectangle' && toFigure === 'RoundedRectangle') ||
+    toFigure === 'Ellipse'
+  ) {
+    return true;
+  } else if (
+    (fromFigure === 'Diamond' && toFigure == 'Ellipse') ||
+    (fromFigure == 'Ellipse' && toFigure == 'Diamond')
+  ) {
+    return true;
+  }
+  return false;
+}export function validateLink(
+  fromNode: go.Node,
+  fromPort: go.GraphObject,
+  toNode: go.Node,
+  toPort: go.GraphObject,
+): boolean {
+  const fromFigure = fromNode?.data.figure;
+  const toFigure = toNode?.data.figure;
+  if (
+    fromFigure &&
+    fromPort &&
+    fromFigure == 'Ellipse' &&
+    ((toFigure && toPort && toFigure == 'Ellipse') ||
+      toFigure === 'RoundedRectangle')
+  ) {
+    return true;
+  } else if (
+    (fromFigure === 'RoundedRectangle' && toFigure === 'RoundedRectangle') ||
+    toFigure === 'Ellipse'
+  ) {
+    return true;
+  } else if (
+    (fromFigure === 'Diamond' && toFigure == 'Ellipse') ||
+    (fromFigure == 'Ellipse' && toFigure == 'Diamond')
+  ) {
+    return true;
+  }
+  return false;
+}
 <!DOCTYPE html>
 <html>
 <head>
