@@ -1,3 +1,81 @@
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GojsDiagramComponent } from './gojs-diagram.component';
+import * as go from 'gojs';
+import { initDiagram } from './path-to-your-file';
+
+describe('GojsDiagramComponent', () => {
+  let component: GojsDiagramComponent;
+  let fixture: ComponentFixture<GojsDiagramComponent>;
+  let diagram: go.Diagram;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [GojsDiagramComponent],
+    }).compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(GojsDiagramComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    diagram = initDiagram();
+    diagram.div = fixture.nativeElement.querySelector('div');
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should call finishDrop on mouse drop', (done) => {
+    const event = new go.InputEvent();
+    event.diagram = diagram;
+    
+    spyOn(diagram.commandHandler, 'addTopLevelParts').and.returnValue(true);
+    spyOn(diagram.currentTool, 'doCancel');
+
+    const finishDrop = diagram.toolManager.mouseDrop;
+    finishDrop(event);
+
+    fixture.whenStable().then(() => {
+      expect(diagram.commandHandler.addTopLevelParts).toHaveBeenCalled();
+      expect(diagram.currentTool.doCancel).not.toHaveBeenCalled();
+      done();
+    });
+  });
+
+  it('should calculate correct group depth', () => {
+    const group1 = new go.Group();
+    const group2 = new go.Group();
+    const node = new go.Node();
+    group1.add(group2);
+    group2.add(node);
+
+    diagram.add(group1);
+
+    const depth = groupDepth(group1);
+    expect(depth).toBe(3);
+  });
+
+  it('should update total group depth', () => {
+    const group1 = new go.Group();
+    const group2 = new go.Group();
+    const node = new go.Node();
+    group1.add(group2);
+    group2.add(node);
+
+    diagram.add(group1);
+
+    spyOn(window, 'groupDepth').and.callThrough();
+    updateTotalGroupDepth();
+
+    expect(groupDepth).toHaveBeenCalled();
+  });
+});
+
+
+
+
 import go from 'gojs';
 import { groupTemplate, nodeTemplate } from '../gojs/gojs-node-template';
 const $ = go.GraphObject.make;
