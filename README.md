@@ -1,3 +1,124 @@
+// src/app/gojs-diagram.spec.ts
+import * as go from 'gojs';
+import { initializeDiagram } from './gojs-diagram';
+
+describe('GoJS Diagram Functions', () => {
+  let div: HTMLDivElement;
+  let diagram: go.Diagram;
+
+  beforeEach(() => {
+    div = document.createElement('div');
+    document.body.appendChild(div);
+    diagram = initializeDiagram(div);
+  });
+
+  afterEach(() => {
+    document.body.removeChild(div);
+  });
+
+  describe('initializeDiagram', () => {
+    it('should initialize a diagram with the specified div', () => {
+      expect(diagram).toBeTruthy();
+      expect(diagram.div).toBe(div);
+    });
+
+    it('should attach finishDrop to ExternalObjectsDropped event', () => {
+      spyOn(diagram, 'addDiagramListener').and.callThrough();
+      initializeDiagram(div);
+      expect(diagram.addDiagramListener).toHaveBeenCalledWith("ExternalObjectsDropped", jasmine.any(Function));
+    });
+  });
+
+  describe('groupDepth', () => {
+    it('should return 0 for non-group objects', () => {
+      const node = new go.Node();
+      const depth = (diagram as any).groupDepth(node);
+      expect(depth).toBe(0);
+    });
+
+    it('should return 1 for a group with no members', () => {
+      const group = new go.Group();
+      diagram.add(group);
+      const depth = (diagram as any).groupDepth(group);
+      expect(depth).toBe(1);
+    });
+
+    it('should return correct depth for nested groups', () => {
+      const group1 = new go.Group();
+      const group2 = new go.Group();
+      const group3 = new go.Group();
+      group1.add(group2);
+      group2.add(group3);
+      diagram.add(group1);
+
+      const depth = (diagram as any).groupDepth(group1);
+      expect(depth).toBe(3);
+    });
+
+    it('should return correct depth for mixed group and nodes', () => {
+      const group1 = new go.Group();
+      const group2 = new go.Group();
+      const node1 = new go.Node();
+      const node2 = new go.Node();
+      group1.add(group2);
+      group2.add(node1);
+      group2.add(node2);
+      diagram.add(group1);
+
+      const depth = (diagram as any).groupDepth(group1);
+      expect(depth).toBe(2);
+    });
+  });
+
+  describe('finishDrop', () => {
+    let inputEvent: go.InputEvent;
+    let commandHandler: jasmine.SpyObj<go.CommandHandler>;
+    let currentTool: jasmine.SpyObj<go.Tool>;
+
+    beforeEach(() => {
+      commandHandler = jasmine.createSpyObj('CommandHandler', ['addTopLevelParts']);
+      currentTool = jasmine.createSpyObj('Tool', ['doCancel']);
+      diagram.commandHandler = commandHandler;
+      diagram.currentTool = currentTool;
+      inputEvent = new go.InputEvent();
+      inputEvent.diagram = diagram;
+    });
+
+    it('should add top-level parts and not cancel tool if successful', () => {
+      commandHandler.addTopLevelParts.and.returnValue(true);
+
+      const finishDropFunction = (diagram as any).finishDrop;
+      finishDropFunction(inputEvent);
+
+      expect(commandHandler.addTopLevelParts).toHaveBeenCalledWith(diagram.selection, true);
+      expect(currentTool.doCancel).not.toHaveBeenCalled();
+    });
+
+    it('should cancel tool if adding top-level parts fails', () => {
+      commandHandler.addTopLevelParts.and.returnValue(false);
+
+      const finishDropFunction = (diagram as any).finishDrop;
+      finishDropFunction(inputEvent);
+
+      expect(commandHandler.addTopLevelParts).toHaveBeenCalledWith(diagram.selection, true);
+      expect(currentTool.doCancel).toHaveBeenCalled();
+    });
+
+    it('should call updateTotalGroupDepth after dropping parts', () => {
+      spyOn(window, 'updateTotalGroupDepth').and.callFake(() => {});
+
+      const finishDropFunction = (diagram as any).finishDrop;
+      finishDropFunction(inputEvent);
+
+      expect(window.updateTotalGroupDepth).toHaveBeenCalled();
+    });
+  });
+});
+
+
+
+
+
 // src/app/gojs-functions.spec.ts
 import * as go from 'gojs';
 import { groupDepth, finishDrop, updateTotalGroupDepth } from './gojs-functions';
