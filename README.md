@@ -1,3 +1,20 @@
+ function groupDepth(g: go.GraphObject) {
+    Iif (!(g instanceof go.Group)) return 0;
+    let d = 1;
+    g.memberParts.each((m) => (d = Math.max(d, groupDepth(m) + 1)));
+    return d;
+  }
+  function finishDrop(e: go.InputEvent) {
+    const ok = e.diagram.commandHandler.addTopLevelParts(
+      e.diagram.selection,
+      true,
+    );
+    Iif (!ok) e.diagram.currentTool.doCancel();
+    updateTotalGroupDepth();
+  }
+
+
+
 // src/app/validate-link.spec.ts
 import * as go from 'gojs';
 import { validateLink } from './validate-link';
