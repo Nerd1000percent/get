@@ -1,3 +1,69 @@
+// src/app/validate-link.spec.ts
+import * as go from 'gojs';
+import { validateLink } from './validate-link';
+
+describe('validateLink', () => {
+  function createNode(figure: string): go.Node {
+    return new go.Node().copy({ data: { figure: figure } });
+  }
+
+  function createPort(): go.GraphObject {
+    return new go.GraphObject();
+  }
+
+  it('should return true for valid Ellipse to Ellipse link', () => {
+    const fromNode = createNode('Ellipse');
+    const toNode = createNode('Ellipse');
+    const fromPort = createPort();
+    const toPort = createPort();
+
+    const result = validateLink(fromNode, fromPort, toNode, toPort);
+    expect(result).toBeTrue();
+  });
+
+  it('should return true for valid Ellipse to RoundedRectangle link', () => {
+    const fromNode = createNode('Ellipse');
+    const toNode = createNode('RoundedRectangle');
+    const fromPort = createPort();
+    const toPort = createPort();
+
+    const result = validateLink(fromNode, fromPort, toNode, toPort);
+    expect(result).toBeTrue();
+  });
+
+  it('should return true for valid RoundedRectangle to RoundedRectangle link', () => {
+    const fromNode = createNode('RoundedRectangle');
+    const toNode = createNode('RoundedRectangle');
+    const fromPort = createPort();
+    const toPort = createPort();
+
+    const result = validateLink(fromNode, fromPort, toNode, toPort);
+    expect(result).toBeTrue();
+  });
+
+  it('should return true for valid Diamond to Ellipse link', () => {
+    const fromNode = createNode('Diamond');
+    const toNode = createNode('Ellipse');
+    const fromPort = createPort();
+    const toPort = createPort();
+
+    const result = validateLink(fromNode, fromPort, toNode, toPort);
+    expect(result).toBeTrue();
+  });
+
+  it('should return false for invalid link', () => {
+    const fromNode = createNode('Diamond');
+    const toNode = createNode('RoundedRectangle');
+    const fromPort = createPort();
+    const toPort = createPort();
+
+    const result = validateLink(fromNode, fromPort, toNode, toPort);
+    expect(result).toBeFalse();
+  });
+});
+
+
+
 export function validateLink(
   fromNode: go.Node,
   fromPort: go.GraphObject,
