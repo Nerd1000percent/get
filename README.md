@@ -1,3 +1,48 @@
+import * as go from 'gojs';
+
+// Define the button creation function with types
+function makeButton(
+  text: string,
+  action: (e: go.InputEvent, obj: go.GraphObject) => void,
+  visiblePredicate: (obj: go.GraphObject) => boolean,
+  options?: { isActionable: boolean }
+): go.GraphObject {
+  return go.GraphObject.make(go.TextBlock, text,
+    {
+      margin: 2,
+      click: action,
+      visible: visiblePredicate,
+      isActionable: options?.isActionable ?? false // Use optional chaining and nullish coalescing
+    }
+  );
+}
+
+// Context menu setup
+const myDiagram = go.GraphObject.make(go.Diagram, 'myDiagramDiv');
+
+myDiagram.contextMenu = go.GraphObject.make(go.Adornment, 'ContextMenu',
+  makeButton(
+    'Paste',
+    (e: go.InputEvent, obj: go.GraphObject) => e.diagram.commandHandler.pasteSelection(e.diagram.toolManager.contextMenuTool.mouseDownPoint),
+    (obj: go.GraphObject) => obj.diagram.commandHandler.canPasteSelection(obj.diagram.toolManager.contextMenuTool.mouseDownPoint),
+    { isActionable: true }
+  ),
+  makeButton(
+    'Undo',
+    (e: go.InputEvent, obj: go.GraphObject) => e.diagram.commandHandler.undo(),
+    (obj: go.GraphObject) => obj.diagram.commandHandler.canUndo(),
+    { isActionable: true }
+  ),
+  makeButton(
+    'Redo',
+    (e: go.InputEvent, obj: go.GraphObject) => e.diagram.commandHandler.redo(),
+    (obj: go.GraphObject) => obj.diagram.commandHandler.canRedo(),
+    { isActionable: true }
+  )
+);
+
+
+
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GojsDiagramComponent } from './gojs-diagram.component';
