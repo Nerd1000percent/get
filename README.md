@@ -4,6 +4,47 @@ import * as go from 'gojs';
 function makeButton(
   text: string,
   action: (e: go.InputEvent, obj: go.GraphObject) => void,
+  visiblePredicate?: (obj: go.GraphObject) => boolean
+): go.GraphObject {
+  return go.GraphObject.make('ContextMenuButton',
+    go.GraphObject.make(go.TextBlock, text),
+    { click: action },
+    // don't bother with binding GraphObject.visible if there's no predicate
+    visiblePredicate ? new go.Binding('visible', '', (obj, e) => (obj.diagram ? visiblePredicate(obj) : false)).ofObject() : {}
+  );
+}
+
+// Context menu setup
+const myDiagram = go.GraphObject.make(go.Diagram, 'myDiagramDiv');
+
+myDiagram.contextMenu = go.GraphObject.make('ContextMenu',
+  makeButton(
+    'Paste',
+    (e: go.InputEvent, obj: go.GraphObject) => e.diagram.commandHandler.pasteSelection(e.diagram.toolManager.contextMenuTool.mouseDownPoint),
+    (obj: go.GraphObject) => obj.diagram.commandHandler.canPasteSelection(obj.diagram.toolManager.contextMenuTool.mouseDownPoint)
+  ),
+  makeButton(
+    'Undo',
+    (e: go.InputEvent, obj: go.GraphObject) => e.diagram.commandHandler.undo(),
+    (obj: go.GraphObject) => obj.diagram.commandHandler.canUndo()
+  ),
+  makeButton(
+    'Redo',
+    (e: go.InputEvent, obj: go.GraphObject) => e.diagram.commandHandler.redo(),
+    (obj: go.GraphObject) => obj.diagram.commandHandler.canRedo()
+  )
+);
+
+
+
+
+
+import * as go from 'gojs';
+
+// Define the button creation function with types
+function makeButton(
+  text: string,
+  action: (e: go.InputEvent, obj: go.GraphObject) => void,
   visiblePredicate: (obj: go.GraphObject) => boolean,
   options?: { isActionable: boolean }
 ): go.GraphObject {
