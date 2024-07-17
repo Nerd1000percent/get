@@ -29,6 +29,93 @@
             computesBoundsAfterDrag: true,
             handlesDragDropForMembers: true,
             isSubGraphExpanded: false, // start with groups collapsed
+            subGraphExpandedChanged: function(group) {
+              checkForSpecificFigure(group.data.key);
+            }
+          },
+          $(go.Panel, "Auto",
+            $(go.Shape, "Rectangle", { fill: "lightblue" }),
+            $(go.TextBlock, { margin: 8 },
+              new go.Binding("text", "key"))
+          ),
+          $(go.Placeholder, { padding: 10 })
+        );
+
+      // Define the model
+      myDiagram.model = new go.GraphLinksModel(
+        [
+          { key: "Alpha", figure: "Circle" },
+          { key: "Beta" },
+          { key: "Gamma" },
+          { key: "Group1", isGroup: true }
+        ],
+        [
+          { from: "Alpha", to: "Group1" },
+          { from: "Beta", to: "Group1" },
+          { from: "Gamma", to: "Group1" }
+        ]
+      );
+
+      // Check for specific figure in group members using model data
+      function checkForSpecificFigure(groupKey) {
+        const model = myDiagram.model;
+        const nodeDataArray = model.nodeDataArray;
+        const groupData = model.findNodeDataForKey(groupKey);
+
+        if (groupData && groupData.isGroup) {
+          const memberKeys = model.memberParts(groupData).toArray().map(member => member.key);
+          const containsSpecificFigure = memberKeys.some(key => {
+            const nodeData = model.findNodeDataForKey(key);
+            return nodeData && nodeData.figure === "Circle";
+          });
+
+          if (containsSpecificFigure) {
+            alert(`Group "${groupKey}" contains a member with a "Circle" figure.`);
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body onload="init()">
+  <div id="myDiagramDiv" style="width:100%; height:600px; border:1px solid black"></div>
+</body>
+</html>
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://unpkg.com/gojs/release/go-debug.js"></script>
+  <script id="code">
+    function init() {
+      const $ = go.GraphObject.make;
+
+      // Initialize the diagram
+      const myDiagram = $(go.Diagram, "myDiagramDiv", {
+        "undoManager.isEnabled": true
+      });
+
+      // Define a simple Node template
+      myDiagram.nodeTemplate =
+        $(go.Node, "Auto",
+          $(go.Shape, "Rectangle", { fill: "white" },
+            new go.Binding("figure", "figure")),
+          $(go.TextBlock, { margin: 8 },
+            new go.Binding("text", "key"))
+        );
+
+      // Define a simple Group template
+      myDiagram.groupTemplate =
+        $(go.Group, "Vertical",
+          {
+            layout: $(go.GridLayout),
+            computesBoundsAfterDrag: true,
+            handlesDragDropForMembers: true,
+            isSubGraphExpanded: false, // start with groups collapsed
             subGraphExpandedChanged: checkForSpecificFigure
           },
           $(go.Panel, "Auto",
