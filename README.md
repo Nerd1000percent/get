@@ -73,6 +73,110 @@
 
       // Function to validate the diagram
       function validateDiagram(diagram) {
+        const nodes = diagram.nodes;
+        
+        nodes.each(function(node) {
+          if (node instanceof go.Group) {
+            node.memberParts.each(function(member) {
+              if (member.data.figure === "Diamond" && !isNodeLinked(member)) {
+                alert(`Group "${node.data.key}" contains a diamond figure that is not linked to anything.`);
+                return false;
+              }
+            });
+          }
+        });
+        return true;
+      }
+
+      // Function to check if a node is linked to anything
+      function isNodeLinked(node) {
+        const links = node.findLinksConnected();
+        return links.count > 0;
+      }
+    }
+  </script>
+</head>
+<body onload="init()">
+  <div id
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://unpkg.com/gojs/release/go-debug.js"></script>
+  <script id="code">
+    function init() {
+      const $ = go.GraphObject.make;
+
+      // Initialize the diagram
+      const myDiagram = $(go.Diagram, "myDiagramDiv", {
+        "undoManager.isEnabled": true
+      });
+
+      // Define a simple Node template
+      myDiagram.nodeTemplate =
+        $(go.Node, "Auto",
+          $(go.Shape, "Rectangle", { fill: "white" },
+            new go.Binding("figure", "figure")),
+          $(go.TextBlock, { margin: 8 },
+            new go.Binding("text", "key"))
+        );
+
+      // Define the template for diamond nodes
+      myDiagram.nodeTemplateMap.add("Diamond",
+        $(go.Node, "Auto",
+          $(go.Shape, "Diamond", { fill: "lightyellow" },
+            new go.Binding("figure", "figure")),
+          $(go.TextBlock, { margin: 8 },
+            new go.Binding("text", "key"))
+        ));
+
+      // Define a simple Group template
+      myDiagram.groupTemplate =
+        $(go.Group, "Vertical",
+          {
+            layout: $(go.GridLayout),
+            computesBoundsAfterDrag: true,
+            handlesDragDropForMembers: true,
+            isSubGraphExpanded: false // start with groups collapsed
+          },
+          $(go.Panel, "Auto",
+            $(go.Shape, "Rectangle", { fill: "lightblue" }),
+            $(go.TextBlock, { margin: 8 },
+              new go.Binding("text", "key"))
+          ),
+          $(go.Placeholder, { padding: 10 })
+        );
+
+      // Define the model
+      myDiagram.model = new go.GraphLinksModel(
+        [
+          { key: "Alpha", figure: "Circle" },
+          { key: "Beta" },
+          { key: "Gamma" },
+          { key: "Diamond1", figure: "Diamond" },
+          { key: "Group1", isGroup: true }
+        ],
+        [
+          { from: "Alpha", to: "Group1" },
+          { from: "Beta", to: "Group1" },
+          { from: "Gamma", to: "Group1" }
+        ]
+      );
+
+      // Add a save button
+      document.getElementById("saveButton").addEventListener("click", function() {
+        if (validateDiagram(myDiagram)) {
+          const json = myDiagram.model.toJson();
+          console.log("Diagram saved:", json);
+        }
+      });
+
+      // Function to validate the diagram
+      function validateDiagram(diagram) {
         const model = diagram.model;
         const nodeDataArray = model.nodeDataArray;
 
