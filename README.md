@@ -1,3 +1,50 @@
+import { TestBed } from '@angular/core/testing';
+import { DiagramService } from './diagram.service';
+import * as go from 'gojs';
+
+describe('DiagramService', () => {
+  let service: DiagramService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(DiagramService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  it('should validate the diagram and return true if there are no unlinked diamond figures in groups', () => {
+    service.initDiagram();
+
+    // Add a linked diamond figure to the diagram
+    const diagram = service.getDiagram();
+    diagram.model.addNodeData({ key: 'Diamond2', figure: 'Diamond', group: 'Group1' });
+    diagram.model.addLinkData({ from: 'Diamond2', to: 'Alpha' });
+
+    const result = service.validateDiagram();
+    expect(result).toBeTrue();
+  });
+
+  it('should validate the diagram and return false if there are unlinked diamond figures in groups', () => {
+    service.initDiagram();
+
+    // Add an unlinked diamond figure to the diagram
+    const diagram = service.getDiagram();
+    diagram.model.addNodeData({ key: 'Diamond2', figure: 'Diamond', group: 'Group1' });
+
+    spyOn(window, 'alert');
+
+    const result = service.validateDiagram();
+    expect(result).toBeFalse();
+    expect(window.alert).toHaveBeenCalledWith('Group "Group1" contains a diamond figure that is not linked to anything.');
+  });
+});
+
+
+
+
+
 import { Injectable } from '@angular/core';
 import * as go from 'gojs';
 
