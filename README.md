@@ -1,3 +1,92 @@
+import { Injectable } from '@angular/core';
+import * as go from 'gojs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DiagramService {
+  private diagram: go.Diagram;
+
+  constructor() {}
+
+  initDiagram(): void {
+    const $ = go.GraphObject.make;
+
+    this.diagram = $(go.Diagram, 'myDiagramDiv', {
+      'undoManager.isEnabled': true
+    });
+
+    this.diagram.nodeTemplate = $(go.Node, 'Auto',
+      $(go.Shape, 'Rectangle', { fill: 'white' },
+        new go.Binding('figure', 'figure')),
+      $(go.TextBlock, { margin: 8 },
+        new go.Binding('text', 'key'))
+    );
+
+    this.diagram.nodeTemplateMap.add('Diamond',
+      $(go.Node, 'Auto',
+        $(go.Shape, 'Diamond', { fill: 'lightyellow' },
+          new go.Binding('figure', 'figure')),
+        $(go.TextBlock, { margin: 8 },
+          new go.Binding('text', 'key'))
+      ));
+
+    this.diagram.groupTemplate = $(go.Group, 'Vertical', {
+        layout: $(go.GridLayout),
+        computesBoundsAfterDrag: true,
+        handlesDragDropForMembers: true,
+        isSubGraphExpanded: false // start with groups collapsed
+      },
+      $(go.Panel, 'Auto',
+        $(go.Shape, 'Rectangle', { fill: 'lightblue' }),
+        $(go.TextBlock, { margin: 8 },
+          new go.Binding('text', 'key'))
+      ),
+      $(go.Placeholder, { padding: 10 })
+    );
+
+    this.diagram.model = new go.GraphLinksModel([
+      { key: 'Alpha', figure: 'Circle' },
+      { key: 'Beta' },
+      { key: 'Gamma' },
+      { key: 'Diamond1', figure: 'Diamond' },
+      { key: 'Group1', isGroup: true }
+    ], [
+      { from: 'Alpha', to: 'Group1' },
+      { from: 'Beta', to: 'Group1' },
+      { from: 'Gamma', to: 'Group1' }
+    ]);
+  }
+
+  getDiagram(): go.Diagram {
+    return this.diagram;
+  }
+
+  validateDiagram(): boolean {
+    const nodes = this.diagram.nodes;
+
+    nodes.each((node) => {
+      if (node instanceof go.Group) {
+        node.memberParts.each((member) => {
+          if (member.data.figure === 'Diamond' && !this.isNodeLinked(member)) {
+            alert(`Group "${node.data.key}" contains a diamond figure that is not linked to anything.`);
+            return false;
+          }
+        });
+      }
+    });
+    return true;
+  }
+
+  isNodeLinked(node: go.Part): boolean {
+    const links = node.findLinksConnected();
+    return links.count > 0;
+  }
+}
+
+
+
+
 <!DOCTYPE html>
 <html>
 <head>
