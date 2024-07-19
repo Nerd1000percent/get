@@ -1,3 +1,90 @@
+var $ = go.GraphObject.make;
+
+var myDiagram = $(go.Diagram, "myDiagramDiv",
+  {
+    "undoManager.isEnabled": true,
+    allowSelect: true,
+    allowMultiSelection: true,
+    // Optionally customize selection appearance
+    "nodeSelectionAdornmentTemplate":
+      $(go.Adornment, "Auto",
+        $(go.Shape, { fill: null, stroke: "blue", strokeWidth: 2 }),
+        $(go.Placeholder)
+      ),
+    "groupSelectionAdornmentTemplate":
+      $(go.Adornment, "Auto",
+        $(go.Shape, { fill: null, stroke: "blue", strokeWidth: 2 }),
+        $(go.Placeholder)
+      )
+  });
+
+// Define a simple Node template
+myDiagram.nodeTemplate =
+  $(go.Node, "Auto",
+    {
+      // Enable node dragging
+      movable: true
+    },
+    $(go.Shape, "Rectangle", { fill: "white" }),
+    $(go.TextBlock, { margin: 8 },
+      new go.Binding("text", "key"))
+  );
+
+// Define a simple Group template
+myDiagram.groupTemplate =
+  $(go.Group, "Auto",
+    {
+      // Make the group linkable
+      fromLinkable: true,
+      toLinkable: true,
+      // Enable group dragging
+      movable: true,
+      // Customize the group’s appearance
+      layout: $(go.GridLayout, { wrappingColumn: 1, alignment: go.GridLayout.Position }),
+      // Ensure group is selectable and draggable
+      selectionObjectName: "GROUPPANEL",
+      locationObjectName: "GROUPPANEL"
+    },
+    $(go.Panel, "Auto",
+      { name: "GROUPPANEL" }, // Make the Panel the selectable and draggable object in the group
+      $(go.Shape, "RoundedRectangle", { fill: "rgba(128,128,128,0.2)", stroke: "gray" }),
+      $(go.Panel, "Vertical",
+        $(go.TextBlock, { margin: 2, font: "Bold 12pt Sans-Serif" },
+          new go.Binding("text", "key")),
+        $(go.Placeholder, { padding: 5 })
+      )
+    )
+  );
+
+// Define the Link template
+myDiagram.linkTemplate =
+  $(go.Link,
+    $(go.Shape),
+    $(go.Shape, { toArrow: "Standard" })
+  );
+
+// Sample data
+myDiagram.model = new go.GraphLinksModel(
+  [
+    { key: "Alpha" },
+    { key: "Beta", isGroup: true },
+    { key: "Gamma", group: "Beta" }
+  ],
+  [
+    { from: "Alpha", to: "Beta" }
+  ]
+);
+
+// Handle the selection change event
+myDiagram.addDiagramListener("ChangedSelection", function(e) {
+  var selectedNodes = e.diagram.selection.toArray();
+  console.log("Selected nodes:", selectedNodes);
+});
+
+
+
+
+
 import { TestBed } from '@angular/core/testing';
 import { DiagramService } from './diagram.service';
 import * as go from 'gojs';
