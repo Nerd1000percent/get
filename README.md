@@ -34,6 +34,102 @@ export class GojsDiagramComponent implements AfterViewInit {
               {
                 click: (e, obj) => {
                   alert('Button 1 clicked!');
+                },
+                toolTip:  // define a tooltip for this button
+                  $(go.Adornment, "Auto",
+                    $(go.Shape, { fill: "#FFFFCC" }),
+                    $(go.TextBlock, { margin: 4 }, "This is Button 1")
+                  )
+              },
+              $(go.TextBlock, "Button 1")
+            ),
+            $("Button",
+              {
+                click: (e, obj) => {
+                  alert('Button 2 clicked!');
+                },
+                toolTip:  // define a tooltip for this button
+                  $(go.Adornment, "Auto",
+                    $(go.Shape, { fill: "#FFFFCC" }),
+                    $(go.TextBlock, { margin: 4 }, "This is Button 2")
+                  )
+              },
+              $(go.TextBlock, "Button 2")
+            )
+          )
+        )
+      );
+
+    myDiagram.model = new go.GraphLinksModel(
+      [
+        { key: 1, text: "Node 1", color: "lightblue" },
+        { key: 2, text: "Node 2", color: "orange" }
+      ],
+      [
+        { from: 1, to: 2 }
+      ]);
+
+    // Add an Overview as a Part in the Diagram
+    myDiagram.add(
+      $(go.Part,
+        {
+          location: new go.Point(10, 10),  // Adjust the position as needed
+          selectable: false,
+          layerName: "Foreground"
+        },
+        $(go.Panel, "Auto",
+          $(go.Shape, { fill: "white", stroke: "gray" }),
+          $(go.Placeholder),
+          $(go.Overview,
+            {
+              observed: myDiagram,
+              contentAlignment: go.Spot.Center
+            }
+          )
+        )
+      )
+    );
+  }
+}
+
+
+
+import { Component, AfterViewInit } from '@angular/core';
+import * as go from 'gojs';
+
+@Component({
+  selector: 'app-gojs-diagram',
+  templateUrl: './gojs-diagram.component.html',
+  styleUrls: ['./gojs-diagram.component.css']
+})
+export class GojsDiagramComponent implements AfterViewInit {
+
+  ngAfterViewInit() {
+    this.initDiagram();
+  }
+
+  initDiagram() {
+    const $ = go.GraphObject.make;
+
+    const myDiagram = $(go.Diagram, "myDiagramDiv", {
+      "undoManager.isEnabled": true
+    });
+
+    myDiagram.nodeTemplate =
+      $(go.Node, "Auto",
+        $(go.Shape, "RoundedRectangle",
+          { strokeWidth: 0, fill: "white" },
+          new go.Binding("fill", "color")),
+        $(go.Panel, "Table",
+          $(go.TextBlock,
+            { margin: 8, editable: true, row: 0, column: 0, columnSpan: 2 },
+            new go.Binding("text").makeTwoWay()),
+          $(go.Panel, "Horizontal",
+            { row: 1, column: 1, alignment: go.Spot.BottomRight, margin: 5 },
+            $("Button",
+              {
+                click: (e, obj) => {
+                  alert('Button 1 clicked!');
                 }
               },
               $(go.TextBlock, "Button 1")
