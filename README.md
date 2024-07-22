@@ -13,6 +13,120 @@ export class GojsDiagramComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.initDiagram();
     this.initOverview();
+    this.addAdornment();
+  }
+
+  initDiagram() {
+    const $ = go.GraphObject.make;
+
+    this.myDiagram = $(go.Diagram, "myDiagramDiv", {
+      "undoManager.isEnabled": true,
+      "modelChanged": () => this.updateButtonStates()
+    });
+
+    this.myDiagram.nodeTemplate =
+      $(go.Node, "Auto",
+        $(go.Shape, "RoundedRectangle",
+          { strokeWidth: 0, fill: "white" },
+          new go.Binding("fill", "color")),
+        $(go.TextBlock,
+          { margin: 8, editable: true },
+          new go.Binding("text").makeTwoWay())
+      );
+
+    this.myDiagram.model = new go.GraphLinksModel(
+      [
+        { key: 1, text: "Node 1", color: "lightblue" },
+        { key: 2, text: "Node 2", color: "orange" }
+      ],
+      [
+        { from: 1, to: 2 }
+      ]
+    );
+
+    this.updateButtonStates(); // Initial call to set button states
+  }
+
+  initOverview() {
+    const $ = go.GraphObject.make;
+
+    const myOverview = $(go.Overview, "myOverviewDiv", {
+      observed: this.myDiagram,
+      contentAlignment: go.Spot.Center
+    });
+  }
+
+  updateButtonStates() {
+    // Update button states in the model
+    const isModified = this.myDiagram.isModified;
+    const model = this.myDiagram.model as go.Model;
+    model.commit(m => {
+      m.set(model.modelData, "isButton1Enabled", isModified);
+      m.set(model.modelData, "isButton2Enabled", isModified);
+    }, 'Update Button States');
+  }
+
+  addAdornment() {
+    const $ = go.GraphObject.make;
+
+    const adornment = $(go.Adornment, "Spot",
+      $(go.Panel, "Auto",
+        { alignment: go.Spot.BottomRight, alignmentFocus: go.Spot.BottomRight, margin: 10 },
+        $("Button",
+          {
+            name: "Button1",
+            click: (e, obj) => {
+              alert('Button 1 clicked!');
+            },
+            toolTip:  // define a tooltip for this button
+              $(go.Adornment, "Auto",
+                $(go.Shape, { fill: "#FFFFCC" }),
+                $(go.TextBlock, { margin: 4 }, "This is Button 1")
+              ),
+            new go.Binding("isEnabled", "isButton1Enabled")
+          },
+          $(go.TextBlock, "Button 1")
+        ),
+        $("Button",
+          {
+            name: "Button2",
+            click: (e, obj) => {
+              alert('Button 2 clicked!');
+            },
+            toolTip:  // define a tooltip for this button
+              $(go.Adornment, "Auto",
+                $(go.Shape, { fill: "#FFFFCC" }),
+                $(go.TextBlock, { margin: 4 }, "This is Button 2")
+              ),
+            new go.Binding("isEnabled", "isButton2Enabled")
+          },
+          $(go.TextBlock, "Button 2")
+        )
+      )
+    );
+
+    this.myDiagram.add(adornment);
+  }
+}
+
+
+
+
+import { Component, AfterViewInit } from '@angular/core';
+import * as go from 'gojs';
+
+@Component({
+  selector: 'app-gojs-diagram',
+  templateUrl: './gojs-diagram.component.html',
+  styleUrls: ['./gojs-diagram.component.css']
+})
+export class GojsDiagramComponent implements AfterViewInit {
+
+  private myDiagram: go.Diagram;
+
+  ngAfterViewInit() {
+    this.initDiagram();
+    this.initOverview();
   }
 
   initDiagram() {
