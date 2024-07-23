@@ -1,3 +1,76 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GojsDiagramComponent } from './gojs-diagram.component';
+import * as go from 'gojs';
+
+describe('GojsDiagramComponent', () => {
+  let component: GojsDiagramComponent;
+  let fixture: ComponentFixture<GojsDiagramComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [ GojsDiagramComponent ]
+    })
+    .compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(GojsDiagramComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should have Button1 initially disabled', () => {
+    const button1 = component.myDiagram.findObject('Button1') as go.GraphObject;
+    expect(button1.isEnabled).toBe(false);
+  });
+
+  it('should have Button2 initially disabled', () => {
+    const button2 = component.myDiagram.findObject('Button2') as go.GraphObject;
+    expect(button2.isEnabled).toBe(false);
+  });
+
+  it('should enable Button1 and Button2 when diagram is modified', () => {
+    component.myDiagram.startTransaction('test');
+    component.myDiagram.model.addNodeData({ key: 3, text: 'Node 3', color: 'green' });
+    component.myDiagram.commitTransaction('test');
+
+    fixture.detectChanges();
+
+    const button1 = component.myDiagram.findObject('Button1') as go.GraphObject;
+    const button2 = component.myDiagram.findObject('Button2') as go.GraphObject;
+
+    expect(button1.isEnabled).toBe(true);
+    expect(button2.isEnabled).toBe(true);
+  });
+
+  it('should disable Button1 and Button2 when diagram is not modified', () => {
+    component.myDiagram.isModified = false;
+    fixture.detectChanges();
+
+    const button1 = component.myDiagram.findObject('Button1') as go.GraphObject;
+    const button2 = component.myDiagram.findObject('Button2') as go.GraphObject;
+
+    expect(button1.isEnabled).toBe(false);
+    expect(button2.isEnabled).toBe(false);
+  });
+
+  it('should call saveDiagram when Button1 is clicked', () => {
+    spyOn(component, 'saveDiagram');
+    
+    const button1 = component.myDiagram.findObject('Button1') as go.GraphObject;
+    button1.click(new go.InputEvent(), button1);
+    
+    expect(component.saveDiagram).toHaveBeenCalled();
+  });
+});
+
+
+
+
 import { Component, AfterViewInit } from '@angular/core';
 import * as go from 'gojs';
 
