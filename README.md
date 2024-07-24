@@ -1,3 +1,57 @@
+import { Component, HostListener } from '@angular/core';
+
+@Component({
+  selector: 'app-file-menu',
+  templateUrl: './file-menu.component.html',
+  styleUrls: ['./file-menu.component.css']
+})
+export class FileMenuComponent {
+  submenuVisible = false;
+  canSave = false;  // Change this based on your condition
+
+  toggleSubmenu() {
+    this.submenuVisible = !this.submenuVisible;
+  }
+
+  closeSubmenu() {
+    this.submenuVisible = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: Event) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.menu')) {
+      this.closeSubmenu();
+    }
+  }
+
+  newFile() {
+    alert('New File created');
+    // Add logic for creating a new file
+  }
+
+  openFile() {
+    alert('Open File dialog');
+    // Add logic for opening a file
+  }
+
+  saveFile() {
+    if (this.canSave) {
+      alert('Save File dialog');
+      // Add logic for saving a file
+    }
+  }
+
+  exitApp() {
+    alert('Exit Application');
+    // Add logic for exiting the application
+  }
+}
+
+
+
+
+
 .menu {
   background-color: #333;
   overflow: hidden;
