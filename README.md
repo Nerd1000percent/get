@@ -1,3 +1,45 @@
+.menu {
+  background-color: #333;
+  overflow: hidden;
+}
+
+.menu-item {
+  float: left;
+  padding: 14px 16px;
+  color: white;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.menu-item:hover {
+  background-color: #575757;
+}
+
+.submenu {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.submenu-item {
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.submenu-item:hover {
+  background-color: #ddd;
+}
+
+.submenu.show {
+  display: block;
+}
+
+
+
+
 body {
   font-family: Arial, sans-serif;
 }
