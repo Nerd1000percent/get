@@ -1,3 +1,94 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { FileMenuComponent } from './file-menu.component';
+
+describe('FileMenuComponent', () => {
+  let component: FileMenuComponent;
+  let fixture: ComponentFixture<FileMenuComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [FileMenuComponent]
+    })
+    .compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(FileMenuComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should toggle submenu visibility', () => {
+    const menuItem = fixture.debugElement.query(By.css('.menu-item'));
+    menuItem.triggerEventHandler('click', null);
+    fixture.detectChanges();
+    expect(component.submenuVisible).toBeTrue();
+
+    menuItem.triggerEventHandler('click', null);
+    fixture.detectChanges();
+    expect(component.submenuVisible).toBeFalse();
+  });
+
+  it('should close submenu when clicking outside', () => {
+    component.submenuVisible = true;
+    fixture.detectChanges();
+
+    document.dispatchEvent(new Event('click'));
+    fixture.detectChanges();
+    expect(component.submenuVisible).toBeFalse();
+  });
+
+  it('should handle menu item clicks', () => {
+    spyOn(window, 'alert');
+
+    const newMenuItem = fixture.debugElement.query(By.css('.submenu-item:nth-child(1)'));
+    newMenuItem.triggerEventHandler('click', null);
+    fixture.detectChanges();
+    expect(window.alert).toHaveBeenCalledWith('New File created');
+
+    const openMenuItem = fixture.debugElement.query(By.css('.submenu-item:nth-child(2)'));
+    openMenuItem.triggerEventHandler('click', null);
+    fixture.detectChanges();
+    expect(window.alert).toHaveBeenCalledWith('Open File dialog');
+
+    component.canSave = true;
+    fixture.detectChanges();
+    const saveMenuItem = fixture.debugElement.query(By.css('.submenu-item:nth-child(3)'));
+    saveMenuItem.triggerEventHandler('click', null);
+    fixture.detectChanges();
+    expect(window.alert).toHaveBeenCalledWith('Save File dialog');
+
+    const exitMenuItem = fixture.debugElement.query(By.css('.submenu-item:nth-child(4)'));
+    exitMenuItem.triggerEventHandler('click', null);
+    fixture.detectChanges();
+    expect(window.alert).toHaveBeenCalledWith('Exit Application');
+  });
+
+  it('should disable save menu item based on canSave condition', () => {
+    component.canSave = false;
+    fixture.detectChanges();
+
+    const saveMenuItem = fixture.debugElement.query(By.css('.submenu-item:nth-child(3)'));
+    expect(saveMenuItem.nativeElement.classList).toContain('disabled');
+    saveMenuItem.triggerEventHandler('click', null);
+    expect(window.alert).not.toHaveBeenCalledWith('Save File dialog');
+
+    component.canSave = true;
+    fixture.detectChanges();
+    expect(saveMenuItem.nativeElement.classList).not.toContain('disabled');
+    saveMenuItem.triggerEventHandler('click', null);
+    expect(window.alert).toHaveBeenCalledWith('Save File dialog');
+  });
+});
+
+
+
+
 import { Component, HostListener } from '@angular/core';
 
 @Component({
