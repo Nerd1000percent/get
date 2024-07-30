@@ -1,3 +1,20 @@
+.p-toolbar {
+    height: 40px; // Adjust the height as needed
+    padding: 0 10px; // Adjust the padding as needed
+
+    .ui-button {
+        height: 30px; // Adjust the height of the buttons if necessary
+        padding: 0 10px; // Adjust the padding of the buttons if necessary
+    }
+}
+
+.p-menubar {
+    height: 40px; // Adjust the height of the menubar
+    padding: 0 10px; // Adjust the padding of the menubar
+}
+
+
+
 <p-toolbar>
     <div class="ui-toolbar-group-left">
         <p-menubar [model]="items"></p-menubar>
