@@ -1,3 +1,15 @@
+<p-toolbar>
+    <div class="ui-toolbar-group-left">
+        <p-menubar [model]="items"></p-menubar>
+    </div>
+    <div class="ui-toolbar-group-right">
+        <button pButton type="button" label="Save" icon="pi pi-check"></button>
+        <button pButton type="button" label="Delete" icon="pi pi-trash"></button>
+    </div>
+</p-toolbar>
+
+
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { FileMenuComponent } from './file-menu.component';
