@@ -1,3 +1,47 @@
+import { Component } from '@angular/core';
+import { MenuItem } from 'primeng/api';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
+})
+export class AppComponent {
+  items: MenuItem[];
+
+  ngOnInit() {
+    this.items = [
+      {
+        label: 'File',
+        items: [
+          { label: 'New', icon: 'pi pi-fw pi-plus' },
+          { label: 'Open', icon: 'pi pi-fw pi-folder-open' },
+          { label: 'Save', icon: 'pi pi-fw pi-save' },
+          { label: 'Delete', icon: 'pi pi-fw pi-trash' },
+          { separator: true },
+          { label: 'Exit', icon: 'pi pi-fw pi-power-off' }
+        ]
+      },
+      {
+        label: 'Edit',
+        items: [
+          { label: 'Undo', icon: 'pi pi-fw pi-undo' },
+          { label: 'Redo', icon: 'pi pi-fw pi-redo' }
+        ]
+      },
+      {
+        label: 'Help',
+        items: [
+          { label: 'Contents', icon: 'pi pi-fw pi-info' },
+          { label: 'Search', icon: 'pi pi-fw pi-search' }
+        ]
+      }
+    ];
+  }
+}
+
+
+
 .p-toolbar {
     height: 40px; // Adjust the height as needed
     padding: 0 10px; // Adjust the padding as needed
