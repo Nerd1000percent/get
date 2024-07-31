@@ -1,3 +1,24 @@
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+
+
+
+
 <p-dialog header="Title" [(visible)]="display" [modal]="true" [responsive]="true" [style]="{width: '50vw'}">
   <div class="form-group">
     <label for="name">Name</label>
