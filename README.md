@@ -1,3 +1,29 @@
+<p-dialog header="Title" [(visible)]="display" [modal]="true" [responsive]="true" [style]="{width: '50vw'}">
+  <div class="form-row">
+    <label for="field1">Field 1</label>
+    <input id="field1" type="text" pInputText class="form-control" />
+    <input id="field1-extra" type="text" pInputText class="form-control" />
+  </div>
+  <div class="form-row">
+    <label for="field2">Field 2</label>
+    <input id="field2" type="text" pInputText class="form-control" />
+    <input id="field2-extra" type="text" pInputText class="form-control" />
+  </div>
+  <div class="form-row">
+    <label for="field3">Field 3</label>
+    <input id="field3" type="text" pInputText class="form-control" />
+    <input id="field3-extra" type="text" pInputText class="form-control" />
+  </div>
+  <p-footer>
+    <button pButton type="button" label="Save" icon="pi pi-check" (click)="save()"></button>
+    <button pButton type="button" label="Cancel" icon="pi pi-times" (click)="display=false"></button>
+  </p-footer>
+</p-dialog>
+<button pButton type="button" label="Show Dialog" icon="pi pi-external-link" (click)="showDialog()"></button>
+
+
+
+
 .form-group {
   display: flex;
   flex-direction: column;
