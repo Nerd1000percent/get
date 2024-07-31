@@ -1,3 +1,29 @@
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+label {
+  margin-right: 1rem;
+  font-weight: bold;
+  width: 100px; /* Adjust this to control the label width */
+}
+
+input {
+  flex: 1;
+  margin-right: 1rem;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+input:last-child {
+  margin-right: 0; /* Remove margin for the last input in the row */
+}
+
+
+
+
 <p-dialog header="Title" [(visible)]="display" [modal]="true" [responsive]="true" [style]="{width: '50vw'}">
   <div class="form-row">
     <label for="field1">Field 1</label>
