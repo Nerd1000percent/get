@@ -1,3 +1,26 @@
+<p-dialog header="Title" [(visible)]="display" [modal]="true" [responsive]="true" [style]="{width: '50vw'}">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input id="name" type="text" pInputText class="form-control" />
+  </div>
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input id="email" type="email" pInputText class="form-control" />
+  </div>
+  <div class="form-group">
+    <label for="message">Message</label>
+    <textarea id="message" pInputTextarea class="form-control"></textarea>
+  </div>
+  <p-footer>
+    <button pButton type="button" label="Save" icon="pi pi-check" (click)="save()"></button>
+    <button pButton type="button" label="Cancel" icon="pi pi-times" (click)="display=false"></button>
+  </p-footer>
+</p-dialog>
+<button pButton type="button" label="Show Dialog" icon="pi pi-external-link" (click)="showDialog()"></button>
+
+
+
+
 import { Component } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 
