@@ -1,3 +1,55 @@
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-dialog-demo',
+  template: `
+    <p-dialog [(visible)]="display" modal="true" header="Enter Data" [responsive]="true" [style]="{ width: '300px' }">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="p-field">
+          <label for="name">Name</label>
+          <input id="name" formControlName="name" pInputText />
+        </div>
+        <div class="p-field">
+          <label for="email">Email</label>
+          <input id="email" formControlName="email" pInputText />
+        </div>
+        <p-footer>
+          <button type="submit" pButton label="Submit" [disabled]="form.invalid"></button>
+        </p-footer>
+      </form>
+    </p-dialog>
+
+    <button type="button" pButton label="Show Dialog" (click)="showDialog()"></button>
+  `,
+})
+export class DialogDemoComponent {
+  display: boolean = false;
+  form: FormGroup;
+
+  constructor(private fb: FormBuilder, private dataService: DataService) {
+    this.form = this.fb.group({
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+    });
+  }
+
+  showDialog() {
+    this.display = true;
+  }
+
+  onSubmit() {
+    if (this.form.valid) {
+      this.dataService.sendData(this.form.value);
+      this.display = false;
+    }
+  }
+}
+
+
+
+
 .form-row {
   display: flex;
   align-items: center;
