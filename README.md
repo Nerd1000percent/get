@@ -1,3 +1,47 @@
+import { Component, OnInit } from '@angular/core';
+import { SignalService } from './signal.service';
+import { signal } from '@angular/core';
+
+@Component({
+  selector: 'app-actions',
+  template: `
+    <button (click)="deleteRow()" [disabled]="!buttonStates.deleteEnabled">Delete</button>
+    <button (click)="openRow()" [disabled]="!buttonStates.openEnabled">Open</button>
+  `,
+  styleUrls: ['./actions.component.css']
+})
+export class ActionsComponent implements OnInit {
+  buttonStates = signal(this.signalService.buttonStatesSignal);
+
+  constructor(private signalService: SignalService) {}
+
+  ngOnInit() {
+    // Subscribe to button state changes
+    this.signalService.buttonStatesSignal.subscribe(states => {
+      this.buttonStates = states;
+    });
+  }
+
+  deleteRow() {
+    const selectedRow = this.signalService.selectedRowSignal.get();
+    if (selectedRow) {
+      console.log('Deleting row:', selectedRow);
+      // Perform delete operation here
+    }
+  }
+
+  openRow() {
+    const selectedRow = this.signalService.selectedRowSignal.get();
+    if (selectedRow) {
+      console.log('Opening row:', selectedRow);
+      // Perform open operation here
+    }
+  }
+}
+
+
+
+
 import { Injectable } from '@angular/core';
 import { writableSignal } from '@angular/core';
 
