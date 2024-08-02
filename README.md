@@ -1,3 +1,37 @@
+import { Injectable } from '@angular/core';
+import { writableSignal } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SignalService {
+  // Signal to track selected row
+  selectedRowSignal = writableSignal<any | null>(null);
+
+  // Signal to manage button states (e.g., enabled/disabled)
+  buttonStatesSignal = writableSignal({
+    deleteEnabled: false,
+    openEnabled: false
+  });
+
+  // Update selected row
+  setSelectedRow(row: any) {
+    this.selectedRowSignal.set(row);
+    this.updateButtonStates(row !== null);
+  }
+
+  // Update button states based on selection
+  updateButtonStates(isRowSelected: boolean) {
+    this.buttonStatesSignal.set({
+      deleteEnabled: isRowSelected,
+      openEnabled: isRowSelected
+    });
+  }
+}
+
+
+
+
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DataService } from './data.service';
