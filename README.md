@@ -1,3 +1,16 @@
+.p-dialog .p-fluid .p-grid {
+  margin-bottom: 1em;
+}
+
+.p-dialog .p-fluid .p-field {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1em;
+}
+
+
+
+
 <button pButton type="button" label="Show Dialog" (click)="showDialog()"></button>
 
 <p-dialog header="Form Dialog" [(visible)]="display" [modal]="true" [responsive]="true" [width]="400">
