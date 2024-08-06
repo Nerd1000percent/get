@@ -1,3 +1,10 @@
+.p-dialog .p-fluid .p-field {
+  margin-bottom: 1em;
+}
+
+
+
+
 <button pButton type="button" label="Show Dialog" (click)="showDialog()"></button>
 
 <p-dialog header="Form Dialog" [(visible)]="display" [modal]="true" [responsive]="true" [width]="300">
