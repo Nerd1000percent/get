@@ -1,3 +1,31 @@
+<button pButton type="button" label="Show Dialog" (click)="showDialog()"></button>
+
+<p-dialog header="Form Dialog" [(visible)]="display" [modal]="true" [responsive]="true" [width]="300">
+  <div class="p-fluid">
+    <div class="p-field">
+      <label for="input1">Input 1</label>
+      <input id="input1" type="text" pInputText [(ngModel)]="formModel.input1" />
+    </div>
+    <div class="p-field">
+      <label for="dropdown1">Dropdown 1</label>
+      <p-dropdown [options]="options" [(ngModel)]="formModel.dropdown1" placeholder="Select an Option"></p-dropdown>
+    </div>
+    <div class="p-field">
+      <label for="input2">Input 2</label>
+      <input id="input2" type="text" pInputText [(ngModel)]="formModel.input2" />
+    </div>
+    <div class="p-field">
+      <label for="dropdown2">Dropdown 2</label>
+      <p-dropdown [options]="options" [(ngModel)]="formModel.dropdown2" placeholder="Select an Option"></p-dropdown>
+    </div>
+    <div class="p-field">
+      <button pButton type="button" label="Submit" (click)="submitForm()"></button>
+      <button pButton type="button" label="Cancel" class="p-button-secondary" (click)="hideDialog()"></button>
+    </div>
+  </div>
+</p-dialog>
+
+
 import { Component, OnInit } from '@angular/core';
 import { SignalService } from './signal.service';
 import { signal } from '@angular/core';
