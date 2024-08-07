@@ -4,6 +4,73 @@ import { of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { DataService } from './data.service';
 import { TableModule } from 'primeng/table';
+import { By } from '@angular/platform-browser';
+
+describe('AppComponent', () => {
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+  let dataService: DataService;
+  let mockData = [
+    { id: 1, name: 'John Doe', age: 30, email: 'john@example.com' },
+    { id: 2, name: 'Jane Smith', age: 25, email: 'jane@example.com' }
+  ];
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule, TableModule],
+      declarations: [AppComponent],
+      providers: [DataService]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+    dataService = TestBed.inject(DataService);
+
+    spyOn(dataService, 'getData').and.returnValue(of(mockData));
+  });
+
+  it('should create the app', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should fetch data on initialization', () => {
+    component.ngOnInit();
+    expect(component.data).toEqual(mockData);
+  });
+
+  it('should render table with data', () => {
+    component.ngOnInit();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement;
+    const tableRows = compiled.querySelectorAll('p-table tbody tr');
+
+    expect(tableRows.length).toBe(2);
+    expect(tableRows[0].textContent).toContain('John Doe');
+    expect(tableRows[1].textContent).toContain('Jane Smith');
+  });
+
+  it('should select a row when clicked', () => {
+    component.ngOnInit();
+    fixture.detectChanges();
+
+    const row = fixture.debugElement.queryAll(By.css('tr'))[1];
+    row.nativeElement.click();
+    fixture.detectChanges();
+
+    expect(component.selectedRow).toEqual(mockData[0]);
+  });
+});
+
+
+
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { of } from 'rxjs';
+import { AppComponent } from './app.component';
+import { DataService } from './data.service';
+import { TableModule } from 'primeng/table';
 
 describe('AppComponent', () => {
   let component: AppComponent;
