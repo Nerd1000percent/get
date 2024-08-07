@@ -1,4 +1,54 @@
-  getData() {
+  import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { of } from 'rxjs';
+import { AppComponent } from './app.component';
+import { SharedService } from './services/shared.service';
+import { TableService } from './services/table.service';
+
+describe('AppComponent', () => {
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+  let tableService: jasmine.SpyObj<TableService>;
+
+  beforeEach(async () => {
+    const sharedServiceSpy = jasmine.createSpyObj('SharedService', ['setData', 'getProcessName', 'getData']);
+    const tableServiceSpy = jasmine.createSpyObj('TableService', ['getJSON', 'getData']);
+
+    await TestBed.configureTestingModule({
+      declarations: [AppComponent],
+      providers: [
+        { provide: SharedService, useValue: sharedServiceSpy },
+        { provide: TableService, useValue: tableServiceSpy },
+      ]
+    }).compileComponents();
+
+    tableService = TestBed.inject(TableService) as jasmine.SpyObj<TableService>;
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should call getData method and update products', fakeAsync(() => {
+    const mockJSONData = [{ id: 1, name: 'Product 1' }, { id: 2, name: 'Product 2' }];
+    const mockTableData = [{ id: 3, name: 'Product 3' }, { id: 4, name: 'Product 4' }];
+    
+    tableService.getJSON.and.returnValue(of(mockJSONData));
+    tableService.getData.and.returnValue(mockTableData);
+
+    component.getData();
+    tick();
+
+    expect(tableService.getJSON).toHaveBeenCalled();
+    expect(component.products).toEqual(mockTableData);
+  }));
+});
+
+
+
+
+getData() {
     this.tableService.getJSON().subscribe((json) => {
       this.products = json;
       this.products = this.tableService.getData();
