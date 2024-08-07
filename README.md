@@ -1,3 +1,105 @@
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { Router, NavigationEnd } from '@angular/router';
+import { of, BehaviorSubject } from 'rxjs';
+import { SharedService } from './services/shared.service';
+import { TableService } from './services/table.service';
+import { ChangeDetectorRef, Injector } from '@angular/core';
+import { AppComponent } from './app.component';
+import { RouterTestingModule } from '@angular/router/testing';
+import { CreateDialogComponent } from './create-dialog/create-dialog.component';
+
+describe('AppComponent', () => {
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+  let router: Router;
+  let sharedService: jasmine.SpyObj<SharedService>;
+  let tableService: jasmine.SpyObj<TableService>;
+  let cdr: ChangeDetectorRef;
+
+  beforeEach(async () => {
+    const sharedServiceSpy = jasmine.createSpyObj('SharedService', ['setData', 'getProcessName', 'getData', 'triggerSave', 'triggerLoad', 'triggerSubmit']);
+    const tableServiceSpy = jasmine.createSpyObj('TableService', ['getJSON', 'getData']);
+
+    await TestBed.configureTestingModule({
+      declarations: [AppComponent],
+      imports: [RouterTestingModule],
+      providers: [
+        { provide: SharedService, useValue: sharedServiceSpy },
+        { provide: TableService, useValue: tableServiceSpy },
+        ChangeDetectorRef,
+        Injector,
+      ]
+    }).compileComponents();
+
+    router = TestBed.inject(Router);
+    sharedService = TestBed.inject(SharedService) as jasmine.SpyObj<SharedService>;
+    tableService = TestBed.inject(TableService) as jasmine.SpyObj<TableService>;
+    cdr = TestBed.inject(ChangeDetectorRef);
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create the app', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should initialize correctly', fakeAsync(() => {
+    const mockNavigationEnd = new NavigationEnd(1, 'url', 'urlAfterRedirects');
+    (router.events as BehaviorSubject<any>).next(mockNavigationEnd);
+
+    sharedService.getData.and.returnValue(of('test data'));
+    sharedService.getProcessName.and.returnValue('test process name');
+    tableService.getJSON.and.returnValue(of([]));
+    tableService.getData.and.returnValue([]);
+
+    component.ngOnInit();
+    tick();
+
+    expect(component.processName).toBe('test process name');
+    expect(component.isDisabled).toBeTrue();
+  }));
+
+  it('should call showDialog method', () => {
+    const dialogSpy = spyOn(component.dialog, 'showDialog');
+    component.showDialog();
+    expect(dialogSpy).toHaveBeenCalled();
+  });
+
+  it('should call getDialogData method', () => {
+    component.getDialogData();
+    expect(sharedService.setData).toHaveBeenCalled();
+  });
+
+  it('should call getData method', fakeAsync(() => {
+    sharedService.getProcessName.and.returnValue('test process name');
+    tableService.getJSON.and.returnValue(of([]));
+    tableService.getData.and.returnValue([]);
+    component.getData();
+    tick();
+    expect(component.processName).toBe('test process name');
+    expect(component.products).toEqual([]);
+  }));
+
+  it('should checkDisabled method', () => {
+    component.checkDisabled('/other-url');
+    expect(component.isDisabled).toBeTrue();
+    expect(cdr.detectChanges).toHaveBeenCalled();
+  });
+
+  it('should set menu items correctly', () => {
+    component.checkDisabled('/diagram');
+    expect(component.isDisabled).toBeFalse();
+    expect(component.items$.value.length).toBeGreaterThan(0);
+  });
+});
+
+
+
+
 import {
   AfterViewInit,
   ChangeDetectorRef,
