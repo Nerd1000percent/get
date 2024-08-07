@@ -1,3 +1,193 @@
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  effect,
+  Injector,
+  OnInit,
+  Output,
+  signal,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { MenuItem } from 'primeng/api';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { MenubarModule } from 'primeng/menubar';
+import { BehaviorSubject, filter } from 'rxjs';
+import { ClassificationBannerComponent } from './classification-banner/classification-banner.component';
+import { CreateDialogComponent } from './create-dialog/create-dialog.component';
+import { DiagramPaletteComponent } from './diagram-palette/diagram-palette.component';
+import { DiagramTemplateComponent } from './diagram-template/diagram-template.component';
+import { HomePageComponent } from './home-page/home-page.component';
+import { ImportsModule } from './imports';
+import { IClassificationBanner } from './models/classification-banner';
+import { TableColumns } from './models/table-columns';
+import { TableData } from './models/table-data';
+import { SharedService } from './services/shared.service';
+import { TableService } from './services/table.service';
+import { TableComponent } from './table/table.component';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [
+    RouterOutlet,
+    DiagramPaletteComponent,
+    DiagramTemplateComponent,
+    ClassificationBannerComponent,
+    ImportsModule,
+    TableComponent,
+    InputTextModule,
+    InputTextareaModule,
+    HomePageComponent,
+    CreateDialogComponent,
+    MenubarModule,
+  ],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.scss',
+  encapsulation: ViewEncapsulation.None,
+  providers: [TableService],
+})
+export class AppComponent implements OnInit, AfterViewInit {
+  @ViewChild('dialog') dialog!: CreateDialogComponent;
+  products!: TableData[];
+  cols!: TableColumns[];
+  diagramNavigation!: boolean;
+  data = signal('');
+  disabled!: boolean;
+  items$ = new BehaviorSubject<MenuItem['']>([]);
+  fileItems = this.items$.asObservable();
+  count = signal<string>;
+  @Output()
+  processName!: string;
+  isDisabled!: boolean;
+  buttons!: {
+    value: string;
+    routerLink?: string[];
+    onClick?: () => void;
+    selectedValue?: string;
+  }[];
+
+  constructor(
+    private router: Router,
+    private sharedService: SharedService,
+    private tableService: TableService,
+    private injector: Injector,
+    private cdr: ChangeDetectorRef,
+  ) {}
+  ngAfterViewInit(): void {
+    this.checkDisabled(this.router.url);
+
+    effect(
+      () => {
+        this.processName = `${this.data()}`;
+      },
+      { injector: this.injector },
+    );
+  }
+
+  showDialog() {
+    this.dialog.showDialog();
+  }
+
+  getDialogData() {
+    this.sharedService.setData(this.dialog.processName);
+  }
+
+  getData() {
+    this.processName = this.sharedService.getProcessName();
+    this.tableService.getJSON().subscribe((json) => {
+      this.products = json;
+      // Read JSON observable function and assign to local array of cableInterface
+      this.products = this.tableService.getData();
+    });
+  }
+  ngOnInit(): void {
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        if (event instanceof NavigationEnd) {
+          this.checkDisabled(event.urlAfterRedirects);
+        }
+      });
+
+    this.checkDisabled(this.router.url);
+    this.data = this.sharedService.getData();
+    this.processName = `${this.data()}`;
+    this.getData();
+  }
+  subMenuVisible = false;
+  //  fileItems: MenuItem[] | undefined;
+  editItems: MenuItem[] | undefined;
+  bannerData: IClassificationBanner = {
+    bannerString: 'UNCLASSIFIED',
+    backgroundColor: 'green',
+    foregroundColor: 'white',
+  };
+
+  checkDisabled(url: string) {
+    const diagramPage = '/diagram';
+    this.isDisabled = url !== diagramPage;
+
+    this.cdr.detectChanges();
+    const fileItems = [
+      {
+        label: 'File',
+        items: [
+          {
+            label: 'New',
+            icon: 'pi pi-fw pi-plus',
+            command: () => {
+              this.showDialog();
+            },
+            disabled: false,
+          },
+          {
+            label: 'Save',
+            icon: 'pi pi-fw pi-save',
+            disabled: this.isDisabled,
+            command: () => this.sharedService.triggerSave(),
+          },
+          {
+            label: 'Load',
+            icon: 'pi pi-fw pi-trash',
+            disabled: this.isDisabled,
+            command: () => this.sharedService.triggerLoad(),
+          },
+          { separator: true },
+
+          {
+            label: 'Submit',
+            icon: 'pi pi-fw pi-trash',
+            disabled: this.isDisabled,
+            command: () => this.sharedService.triggerSubmit(),
+          },
+        ],
+      },
+      {
+        label: 'Edit',
+        items: [
+          { label: 'Undo', icon: 'pi pi-fw pi-undo' },
+          { label: 'Redo', icon: 'pi pi-fw pi-redo' },
+        ],
+      },
+      {
+        label: 'Help',
+        items: [
+          { label: 'Contents', icon: 'pi pi-fw pi-info' },
+          { label: 'Search', icon: 'pi pi-fw pi-search' },
+        ],
+      },
+    ];
+    this.items$.next(fileItems);
+  }
+}
+
+
+
+
 import { TestBed } from '@angular/core/testing';
 import { Component } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
