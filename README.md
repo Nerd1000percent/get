@@ -1,3 +1,66 @@
+ checkDisabled(url: string) {
+    const diagramPage = '/diagram';
+    this.isDisabled = url !== diagramPage;
+
+    this.cdr.detectChanges();
+    const fileItems = [
+      {
+        label: 'File',
+        items: [
+          {
+            label: 'New',
+            icon: 'pi pi-fw pi-plus',
+            command: () => {
+              this.showDialog();
+            },
+            disabled: false,
+          },
+          {
+            label: 'Save',
+            icon: 'pi pi-fw pi-save',
+            disabled: this.isDisabled,
+            command: () => this.sharedService.triggerSave(),
+          },
+          {
+            label: 'Load',
+            icon: 'pi pi-fw pi-trash',
+            disabled: this.isDisabled,
+            command: () => this.sharedService.triggerLoad(),
+          },
+          { separator: true },
+
+          {
+            label: 'Submit',
+            icon: 'pi pi-fw pi-trash',
+            disabled: this.isDisabled,
+            command: () => this.sharedService.triggerSubmit(),
+          },
+        ],
+      },
+      {
+        label: 'Edit',
+        items: [
+          { label: 'Undo', icon: 'pi pi-fw pi-undo' },
+          { label: 'Redo', icon: 'pi pi-fw pi-redo' },
+        ],
+      },
+      {
+        label: 'Help',
+        items: [
+          { label: 'Contents', icon: 'pi pi-fw pi-info' },
+          { label: 'Search', icon: 'pi pi-fw pi-search' },
+        ],
+      },
+    ];
+    this.items$.next(fileItems);
+  }
+
+
+
+
+
+
+
 .p-dialog .p-fluid .p-grid {
   margin-bottom: 1em;
 }
