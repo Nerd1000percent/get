@@ -1,3 +1,11 @@
+  getData() {
+    this.tableService.getJSON().subscribe((json) => {
+      this.products = json;
+      this.products = this.tableService.getData();
+    });
+  }
+
+
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Router, NavigationEnd } from '@angular/router';
 import { of, BehaviorSubject } from 'rxjs';
