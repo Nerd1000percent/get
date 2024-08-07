@@ -1,3 +1,126 @@
+import { TestBed } from '@angular/core/testing';
+import { Component } from '@angular/core';
+import { ChangeDetectorRef } from '@angular/core';
+import { Subject } from 'rxjs';
+
+@Component({
+  template: ''
+})
+class TestComponent {
+  isDisabled: boolean;
+  items$ = new Subject<any[]>();
+
+  constructor(private cdr: ChangeDetectorRef, private sharedService: any) {}
+
+  checkDisabled(url: string) {
+    const diagramPage = '/diagram';
+    this.isDisabled = url !== diagramPage;
+
+    this.cdr.detectChanges();
+    const fileItems = [
+      {
+        label: 'File',
+        items: [
+          {
+            label: 'New',
+            icon: 'pi pi-fw pi-plus',
+            command: () => {
+              this.showDialog();
+            },
+            disabled: false,
+          },
+          {
+            label: 'Save',
+            icon: 'pi pi-fw pi-save',
+            disabled: this.isDisabled,
+            command: () => this.sharedService.triggerSave(),
+          },
+          {
+            label: 'Load',
+            icon: 'pi pi-fw pi-trash',
+            disabled: this.isDisabled,
+            command: () => this.sharedService.triggerLoad(),
+          },
+          { separator: true },
+
+          {
+            label: 'Submit',
+            icon: 'pi pi-fw pi-trash',
+            disabled: this.isDisabled,
+            command: () => this.sharedService.triggerSubmit(),
+          },
+        ],
+      },
+      {
+        label: 'Edit',
+        items: [
+          { label: 'Undo', icon: 'pi pi-fw pi-undo' },
+          { label: 'Redo', icon: 'pi pi-fw pi-redo' },
+        ],
+      },
+      {
+        label: 'Help',
+        items: [
+          { label: 'Contents', icon: 'pi pi-fw pi-info' },
+          { label: 'Search', icon: 'pi pi-fw pi-search' },
+        ],
+      },
+    ];
+    this.items$.next(fileItems);
+  }
+
+  showDialog() {
+    // Mock implementation
+  }
+}
+
+describe('TestComponent', () => {
+  let component: TestComponent;
+  let cdr: ChangeDetectorRef;
+  let sharedService: any;
+
+  beforeEach(() => {
+    sharedService = {
+      triggerSave: jasmine.createSpy('triggerSave'),
+      triggerLoad: jasmine.createSpy('triggerLoad'),
+      triggerSubmit: jasmine.createSpy('triggerSubmit'),
+    };
+
+    TestBed.configureTestingModule({
+      declarations: [TestComponent],
+      providers: [
+        { provide: ChangeDetectorRef, useValue: { detectChanges: jasmine.createSpy('detectChanges') } },
+        { provide: 'sharedService', useValue: sharedService }
+      ]
+    });
+
+    const fixture = TestBed.createComponent(TestComponent);
+    component = fixture.componentInstance;
+    cdr = TestBed.inject(ChangeDetectorRef);
+  });
+
+  it('should disable commands based on URL', () => {
+    component.checkDisabled('/diagram');
+    expect(component.isDisabled).toBe(false);
+    component.items$.subscribe(items => {
+      expect(items[0].items[1].disabled).toBe(false);
+      expect(items[0].items[2].disabled).toBe(false);
+      expect(items[0].items[4].disabled).toBe(false);
+    });
+
+    component.checkDisabled('/otherpage');
+    expect(component.isDisabled).toBe(true);
+    component.items$.subscribe(items => {
+      expect(items[0].items[1].disabled).toBe(true);
+      expect(items[0].items[2].disabled).toBe(true);
+      expect(items[0].items[4].disabled).toBe(true);
+    });
+  });
+});
+
+
+
+
  checkDisabled(url: string) {
     const diagramPage = '/diagram';
     this.isDisabled = url !== diagramPage;
