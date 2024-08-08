@@ -1,3 +1,33 @@
+<!-- Dialog for editing group text -->
+<p-dialog [(visible)]="displayDialog" modal="true" header="Edit Group Text">
+    <div>
+        <label for="groupText">Enter new group text:</label>
+        <input id="groupText" type="text" [(ngModel)]="nodeText" />
+    </div>
+    <p-footer>
+        <button pButton label="OK" (click)="confirmDrop()"></button>
+        <button pButton label="Cancel" (click)="cancelDrop()" class="ui-button-secondary"></button>
+    </p-footer>
+</p-dialog>
+
+<!-- Diagram container -->
+<div id="myDiagramDiv" style="width:100%; height:400px; border:1px solid black"></div>
+
+<!-- Save Button -->
+<button pButton label="Save Diagram" (click)="showSaveConfirmation()"></button>
+
+<!-- Confirmation Dialog for Save -->
+<p-confirmDialog [(visible)]="displayConfirmationDialog" header="Save Confirmation" icon="pi pi-exclamation-triangle" acceptLabel="Yes" rejectLabel="No"
+                 accept="confirmSave()" reject="cancelSave()">
+    <p-footer>
+        <button pButton label="Yes" (click)="confirmSave()"></button>
+        <button pButton label="No" (click)="cancelSave()" class="ui-button-secondary"></button>
+    </p-footer>
+</p-confirmDialog>
+
+
+
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of } from 'rxjs';
