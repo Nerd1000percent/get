@@ -1,3 +1,60 @@
+import { Component, ViewChild } from '@angular/core';
+import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
+
+@Component({
+  selector: 'app-diagram',
+  templateUrl: './diagram.component.html',
+  styleUrls: ['./diagram.component.css']
+})
+export class DiagramComponent {
+
+  @ViewChild(ConfirmationDialogComponent) confirmationDialog: ConfirmationDialogComponent;
+
+  constructor() { }
+
+  // Method to show the confirmation dialog for saving
+  showSaveConfirmation() {
+    this.confirmationDialog.confirmAction(
+      'Save Confirmation',
+      'Do you want to save the diagram?',
+      () => this.saveToFile()
+    );
+  }
+
+  // Method to show the confirmation dialog for submitting
+  checkAndSubmit() {
+    if (this.diagram.model.nodeDataArray.length === 0) {
+      this.confirmationDialog.confirmAction(
+        'Submit Confirmation',
+        'The diagram is empty. Cannot submit an empty diagram.',
+        () => {
+          // Handle submission here if any additional logic is needed
+          this.submitDiagram();
+        }
+      );
+    } else {
+      this.submitDiagram();
+    }
+  }
+
+  saveToFile() {
+    const json = this.diagram.model.toJson();
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'diagram.json';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  submitDiagram() {
+    console.log("Diagram submitted successfully!");
+  }
+}
+
+
+
 import { Component } from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
