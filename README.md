@@ -1,3 +1,36 @@
+import { Component } from '@angular/core';
+import { ConfirmationService, MessageService } from 'primeng/api';
+
+@Component({
+  selector: 'app-confirmation-dialog',
+  templateUrl: './confirmation-dialog.component.html',
+  styleUrls: ['./confirmation-dialog.component.css']
+})
+export class ConfirmationDialogComponent {
+
+  constructor(
+    private confirmationService: ConfirmationService,
+    private messageService: MessageService
+  ) {}
+
+  confirmAction(header: string, message: string, onConfirm: () => void) {
+    this.confirmationService.confirm({
+      header: header,
+      message: message,
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        onConfirm();
+        this.messageService.add({ severity: 'info', summary: 'Confirmed', detail: 'Action confirmed' });
+      },
+      reject: () => {
+        this.messageService.add({ severity: 'warn', summary: 'Cancelled', detail: 'Action cancelled' });
+      }
+    });
+  }
+}
+
+
+
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
