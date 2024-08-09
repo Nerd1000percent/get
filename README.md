@@ -1,4 +1,19 @@
 this.diagram.nodeTemplate =
+  new go.Node(go.Panel.Auto,
+    new go.Shape("RoundedRectangle", { fill: "lightblue", strokeWidth: 0 }),
+    new go.TextBlock({ margin: 8 }).bind("text", "key"),
+    new go.Panel(go.Panel.Auto,  // Button panel
+      {
+        alignment: go.Spot.Bottom,  // Position the button at the bottom
+        alignmentFocus: go.Spot.Center,
+        click: (e, obj) => this.onNodeButtonClick(obj)  // Event handler for the button
+      },
+      new go.TextBlock("Click Me", { margin: 5 })  // Button label
+    )
+  );
+
+
+this.diagram.nodeTemplate =
   $(go.Node, "Auto",
     $(go.Shape, "RoundedRectangle",
       { fill: "lightblue", strokeWidth: 0 }),
