@@ -7,6 +7,50 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 })
 export class ConfirmationDialogComponent {
 
+  private _visible: boolean = false;
+
+  @Input() 
+  get visible(): boolean {
+    return this._visible;
+  }
+
+  @Output() visibleChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+
+  set visible(value: boolean) {
+    this._visible = value;
+    this.visibleChange.emit(this._visible);
+  }
+
+  @Input() header: string = 'Confirmation';
+  @Input() message: string = '';
+  @Input() icon: string = 'pi pi-exclamation-triangle';
+  @Input() isSubmitCheck: boolean = false;
+
+  @Output() onConfirm: EventEmitter<void> = new EventEmitter();
+  @Output() onCancel: EventEmitter<void> = new EventEmitter();
+
+  confirm() {
+    this.onConfirm.emit();
+    this.visible = false;
+  }
+
+  cancel() {
+    this.onCancel.emit();
+    this.visible = false;
+  }
+}
+
+
+
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+@Component({
+  selector: 'app-confirmation-dialog',
+  templateUrl: './confirmation-dialog.component.html',
+  styleUrls: ['./confirmation-dialog.component.css']
+})
+export class ConfirmationDialogComponent {
+
   @Input() visible: boolean = false;
   @Input() header: string = 'Confirmation';
   @Input() message: string = '';
