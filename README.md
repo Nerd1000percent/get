@@ -1,3 +1,21 @@
+this.diagram.nodeTemplate =
+  $(go.Node, "Auto",
+    $(go.Shape, "RoundedRectangle",
+      { fill: "lightblue", strokeWidth: 0 }),
+    $(go.TextBlock,
+      { margin: 8 },
+      new go.Binding("text", "key")),
+    $("Button",
+      {
+        click: (e, obj) => this.onNodeButtonClick(obj)  // Event handler for the button
+      },
+      $(go.TextBlock, "Click Me")  // Button label
+    )
+  );
+
+
+
+
 import { Component, ViewChild } from '@angular/core';
 import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
 
